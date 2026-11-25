@@ -1,0 +1,10 @@
+node_modules
+dist
+.cache
+.env
+.git
+.idea
+.claude
+eval/results
+*.log
+src/**/*.test.ts

@@ -1,0 +1,665 @@
+/* Search page. Global tokens and building blocks (buttons, pills, chips, badges) are in ../styles.css. */
+
+.search-page {
+  padding-top: 24px;
+  padding-bottom: 48px;
+}
+.page-title {
+  margin-bottom: 16px;
+}
+
+/* ---------- Search bar: "Where / what?" and "When?" in one box ---------- */
+
+.searchbar {
+  display: flex;
+  align-items: stretch;
+  padding: 6px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  box-shadow: var(--shadow);
+}
+.searchbar__field {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
+  padding: 4px 14px;
+  border-right: 1px solid var(--border);
+}
+.searchbar__where {
+  flex: 2;
+}
+.searchbar__field span {
+  font-size: 12px;
+  font-weight: 600;
+}
+.searchbar__field input:not([type='checkbox']) {
+  min-height: 28px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  outline: none;
+}
+.searchbar .btn {
+  min-width: 120px;
+  margin-left: 6px;
+}
+
+/* ---------- Filter pills with <details> popovers ---------- */
+
+.filterbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 16px;
+}
+.popover {
+  position: relative;
+}
+.popover > summary {
+  list-style: none;
+}
+.popover > summary::-webkit-details-marker {
+  display: none;
+}
+.popover > summary::after {
+  content: '▾';
+  font-size: 12px;
+}
+.popover__panel {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  z-index: 30;
+  min-width: 240px;
+  max-height: 340px;
+  overflow: auto;
+  padding: 14px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  box-shadow: var(--shadow);
+}
+.popover__panel .row {
+  flex-wrap: nowrap;
+}
+.popover__panel .field input {
+  width: 100%;
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+/* ---------- Layout: results + sticky assistant ---------- */
+
+.search-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 360px;
+  align-items: start;
+  gap: 24px;
+  margin-top: 24px;
+}
+.results__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+.sort {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  color: var(--muted);
+}
+.sort select {
+  color: var(--text);
+}
+.results .grid,
+.results .banner {
+  transition: opacity 0.2s;
+}
+.results.is-busy .grid,
+.results.is-busy .banner {
+  opacity: 0.45;
+}
+
+.banner {
+  margin-bottom: 12px;
+  padding: 12px 16px;
+  border: 1px solid;
+  border-radius: var(--radius-lg);
+  font-size: 14px;
+}
+.banner strong {
+  font-size: 16px;
+}
+.banner details {
+  margin-top: 4px;
+}
+.banner summary {
+  font-size: 13px;
+  cursor: pointer;
+}
+.banner ul {
+  margin: 6px 0 0;
+  padding-left: 18px;
+}
+.banner--high {
+  background: var(--success-tint);
+  border-color: var(--success);
+  color: var(--success-text);
+}
+.banner--medium {
+  background: var(--warning-tint);
+  border-color: var(--warning);
+  color: var(--warning-text);
+}
+.banner--low {
+  background: var(--error-tint);
+  border-color: var(--error);
+  color: var(--error-text);
+}
+
+/* ---------- Trip cards ---------- */
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+  gap: 28px 16px;
+}
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+.card__tile {
+  position: relative;
+  display: grid;
+  place-items: center;
+  aspect-ratio: 1;
+  overflow: hidden;
+  padding: 44px 16px;
+  border-radius: var(--radius-lg);
+  color: #fff;
+  text-decoration: none;
+  background: linear-gradient(160deg, #404040, #8c8c8c);
+}
+.card__tile::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(transparent 60%, rgb(0 0 0 / 0.35));
+}
+.card__tile > * {
+  z-index: 1;
+}
+.card__dest {
+  font-size: 28px;
+  font-weight: 700;
+  line-height: 1.1;
+  text-align: center;
+  text-shadow: 0 1px 12px rgb(0 0 0 / 0.15);
+}
+.card__badges {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  right: 12px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.card__overlay {
+  position: absolute;
+  left: 12px;
+  right: 12px;
+  bottom: 12px;
+  display: flex;
+  justify-content: space-between;
+  font-size: 14px;
+  font-weight: 600;
+}
+.tile--europe {
+  background: linear-gradient(160deg, #5b6cff, #a78bfa);
+}
+.tile--asia {
+  background: linear-gradient(160deg, #ff4758, #ff9a6b);
+}
+.tile--africa {
+  background: linear-gradient(160deg, #d97706, #f6c453);
+}
+.tile--america {
+  background: linear-gradient(160deg, #2f7580, #5fc2a0);
+}
+.tile--oceania {
+  background: linear-gradient(160deg, #1d6fb8, #4fd1e0);
+}
+
+.card__title {
+  margin-top: 6px;
+  font-size: 16px;
+  font-weight: 600;
+}
+.card__title a {
+  text-decoration: none;
+}
+.card__title a:hover {
+  text-decoration: underline;
+}
+.price {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+}
+.price strong {
+  color: var(--secondary);
+  font-weight: 600;
+}
+.departures,
+.reasons {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: 13px;
+  line-height: 1.4;
+}
+.departures li {
+  padding: 3px 0;
+  color: var(--muted);
+}
+.departures li + li {
+  border-top: 1px dashed var(--border);
+}
+.status--confirmed {
+  color: var(--success-text);
+  font-weight: 600;
+}
+.status--almost_full {
+  color: var(--primary);
+  font-weight: 600;
+}
+.reasons li {
+  position: relative;
+  padding-left: 18px;
+}
+.reasons li::before {
+  position: absolute;
+  left: 0;
+  font-weight: 700;
+}
+.reasons .is-ok::before {
+  content: '✓';
+  color: var(--success);
+}
+.reasons .is-ko::before {
+  content: '✗';
+  color: var(--error);
+}
+.good-to-know {
+  font-size: 13px;
+  color: var(--muted);
+}
+.good-to-know a {
+  color: var(--secondary);
+}
+.card__feedback {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: auto;
+  padding-top: 4px;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.votes {
+  display: inline-flex;
+  gap: 6px;
+}
+.vote {
+  padding: 2px 8px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  font-size: 15px;
+  line-height: 1.4;
+  cursor: pointer;
+  filter: grayscale(1);
+  opacity: 0.75;
+}
+.vote:hover,
+.vote[aria-pressed='true'] {
+  filter: none;
+  opacity: 1;
+}
+.vote[aria-pressed='true'] {
+  border-color: var(--secondary);
+  background: var(--secondary-tint);
+}
+
+.feedback {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  margin-top: 32px;
+  padding: 16px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  font-weight: 500;
+}
+.feedback form {
+  display: flex;
+  flex-basis: 100%;
+  align-items: flex-start;
+  gap: 8px;
+}
+.feedback textarea {
+  flex: 1;
+}
+
+.skeleton .card__tile {
+  background: linear-gradient(90deg, #ececec, #f7f7f7, #ececec) 0 0 / 200% 100%;
+  animation: shimmer 1.2s linear infinite;
+}
+.skeleton__line {
+  height: 14px;
+  border-radius: 4px;
+  background: #ececec;
+}
+.skeleton__line--short {
+  width: 50%;
+}
+@keyframes shimmer {
+  to {
+    background-position: -200% 0;
+  }
+}
+
+/* ---------- Assistant ---------- */
+
+.assistant {
+  position: sticky;
+  top: calc(var(--header-h) + 16px);
+  display: flex;
+  flex-direction: column;
+  max-height: calc(100vh - var(--header-h) - 32px);
+  overflow: hidden;
+  border: 1px solid var(--ai-border);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+}
+.assistant__head {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  padding: 14px 16px;
+  border: 0;
+  border-bottom: 1px solid var(--ai-border);
+  background: var(--ai-tint);
+  text-align: left;
+  cursor: default;
+}
+.assistant__title {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--ai);
+}
+.assistant__subtitle {
+  grid-column: 1;
+  font-size: 13px;
+  color: var(--muted);
+}
+.assistant__toggle {
+  display: none;
+  grid-area: 1 / 2 / 3;
+  align-self: center;
+  color: var(--ai);
+}
+.assistant__body {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-height: 0;
+}
+.examples {
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--border);
+}
+.examples summary {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--ai);
+  cursor: pointer;
+}
+.examples ul {
+  display: grid;
+  gap: 6px;
+  max-height: 260px;
+  overflow: auto;
+  margin: 8px 0 0;
+  padding: 0;
+  list-style: none;
+}
+.examples button {
+  display: grid;
+  width: 100%;
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  font-size: 14px;
+  text-align: left;
+  cursor: pointer;
+}
+.examples button:hover {
+  border-color: var(--ai);
+  background: var(--ai-tint);
+}
+.examples small {
+  font-size: 12px;
+  color: var(--muted);
+}
+.assistant__log {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 8px;
+  min-height: 160px;
+  overflow-y: auto;
+  padding: 12px 16px;
+}
+.bubble {
+  max-width: 90%;
+  padding: 8px 12px;
+  border-radius: var(--radius-lg);
+  font-size: 14px;
+}
+.bubble--user {
+  align-self: flex-end;
+  border-bottom-right-radius: 4px;
+  background: var(--ai);
+  color: #fff;
+}
+.bubble--assistant {
+  align-self: flex-start;
+  border-bottom-left-radius: 4px;
+  background: var(--ai-tint);
+}
+.bubble--error {
+  background: var(--error-tint);
+  color: var(--error-text);
+}
+.bubble__note {
+  display: block;
+  margin-top: 4px;
+  font-size: 12px;
+  color: var(--muted);
+}
+.is-thinking {
+  color: var(--muted);
+  animation: pulse 1.2s ease-in-out infinite;
+}
+@keyframes pulse {
+  50% {
+    opacity: 0.4;
+  }
+}
+.faq-answer {
+  margin-top: 8px;
+  padding: 8px 10px;
+  border: 1px solid var(--ai-border);
+  border-radius: 8px;
+  background: var(--surface);
+}
+.faq-answer__label {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--ai);
+}
+.faq-answer ul {
+  margin: 4px 0 0;
+  padding-left: 18px;
+  font-size: 13px;
+}
+.faq-answer a {
+  color: var(--secondary);
+}
+.assistant__form {
+  display: flex;
+  gap: 8px;
+  padding: 12px 16px 8px;
+  border-top: 1px solid var(--border);
+}
+.assistant__form input {
+  flex: 1;
+  min-width: 0;
+}
+.assistant__foot {
+  padding: 0 16px 12px;
+}
+
+/* ---------- Responsive ---------- */
+
+@media (max-width: 960px) {
+  .search-layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  /* The assistant becomes a collapsible bottom sheet. */
+  .search-page {
+    padding-bottom: 96px;
+  }
+  .assistant {
+    position: fixed;
+    top: auto;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 25;
+    max-height: 85vh;
+    border-radius: 16px 16px 0 0;
+    box-shadow: 0 -8px 24px rgb(0 0 0 / 0.12);
+  }
+  .assistant__head {
+    cursor: pointer;
+  }
+  .assistant__toggle {
+    display: block;
+  }
+  .assistant:not(.is-open) .assistant__body {
+    display: none;
+  }
+  .assistant.is-open .assistant__body {
+    height: 70vh;
+  }
+}
+
+@media (max-width: 720px) {
+  .page-title {
+    font-size: 24px;
+  }
+  .searchbar {
+    flex-wrap: wrap;
+  }
+  .searchbar__where {
+    flex-basis: 100%;
+    padding-bottom: 8px;
+    border-right: 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .searchbar__field:nth-child(2),
+  .searchbar__field:nth-child(3) {
+    padding-top: 8px;
+  }
+  .searchbar__field:nth-child(3) {
+    border-right: 0;
+  }
+  .searchbar .btn {
+    flex-basis: 100%;
+    margin: 6px 0 0;
+  }
+  /* One swipeable row of pills; their popovers are fixed (below), so the scroll doesn't clip them. */
+  .filterbar {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    margin-inline: -1rem;
+    padding-inline: 1rem;
+    scrollbar-width: none;
+  }
+  .grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  /* A full-width square tile would fill the whole screen. */
+  .card__tile {
+    aspect-ratio: 16 / 10;
+  }
+  /* Popovers open as a sheet: anchored to a pill they would overflow the screen. */
+  .popover__panel {
+    position: fixed;
+    top: auto;
+    left: 1rem;
+    right: 1rem;
+    bottom: 1rem;
+    z-index: 40;
+    max-height: 60vh;
+  }
+}
+
+/* "Not sure yet? Narrow it down": outlined teal chips, like weroad.com's AI suggestions */
+.narrow {
+  display: grid;
+  gap: 8px;
+  margin: 0 0 16px;
+  padding: 12px 16px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface);
+}
+.narrow__row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+.narrow__row > .muted {
+  width: 64px;
+  font-size: 13px;
+}
+.chip--suggest {
+  padding: 4px 12px;
+  border-radius: 6px;
+}

@@ -9,6 +9,10 @@ export type SalesStatus = (typeof SALES_STATUSES)[number];
 /** Only these statuses can be booked. Everything else (sold out, waiting list, closed) is never shown. */
 export const BOOKABLE_STATUSES: SalesStatus[] = ['PLANNED', 'ALMOST_CONFIRMED', 'CONFIRMED', 'ALMOST_FULL'];
 
+/** The one bookability rule, used by the search, the catalog vocabulary and the backoffice. `today` is the server's (CatalogMeta.today). */
+export const isBookable = (d: Pick<Tour, 'salesStatus' | 'seatsLeft' | 'startingDate'>, today: string) =>
+  BOOKABLE_STATUSES.includes(d.salesStatus) && d.seatsLeft > 0 && d.startingDate > today;
+
 // ---------- Catalog ----------
 
 export interface Tour {
@@ -76,6 +80,7 @@ export interface CatalogMeta {
   durationRange: [number, number];
   dateRange: [string, string]; // first/last bookable departure
   kibanaUrl: string | null;
+  today: string; // the server's "today" (APP_TODAY or UTC date): use it for bookability in the UI
 }
 
 // ---------- Search ----------
@@ -172,6 +177,7 @@ export interface SearchResponse {
   confidence: Confidence;
   answer: FaqAnswer | null;
   suggestions: Suggestion[];
+  hasCriteria: boolean; // false = nothing asked yet: confidence and "% match" don't apply and are not shown
   interpreter: 'llm' | 'rules' | 'none';
 }
 
@@ -187,6 +193,27 @@ export interface FeedbackRequest {
   comment?: string;
 }
 
+// ---------- Settings (admin) ----------
+
+/** Models the assistant can use; 'none' = rule-based parser only (no LLM calls, no cost). */
+export const LLM_MODELS = ['claude-sonnet-5-5', 'claude-haiku-5-5', 'none'] as const;
+export type LlmModel = (typeof LLM_MODELS)[number];
+
+/** Runtime settings, editable in /admin. Environment variables are the defaults until saved. */
+export interface Settings {
+  llmModel: LlmModel;
+  dailyLlmBudgetUsd: number; // past this, the rule-based parser answers for the rest of the day
+  llmTimeoutMs: number; // after this, the rule-based parser answers
+}
+
+export interface SettingsView {
+  settings: Settings;
+  defaults: Settings; // from the environment
+  updatedAt: string | null; // null = never saved, defaults apply
+  apiKeyConfigured: boolean;
+  spentTodayUsd: number;
+}
+
 // ---------- Search log (admin) ----------
 
 export interface SearchLog {
@@ -195,6 +222,7 @@ export interface SearchLog {
   sessionId: string;
   mode: 'classic' | 'assistant';
   message: string | null;
+  query: string | null; // what the visitor typed: the message, or the classic search text
   stateIn: SearchState;
   stateOut: SearchState;
   interpreter: 'llm' | 'rules' | 'none';
@@ -208,6 +236,7 @@ export interface SearchLog {
   results: { tripId: number; title: string; confidence: number; exact: boolean }[];
   confidence: number;
   confidenceLevel: ConfidenceLevel;
+  hasCriteria: boolean; // searches without criteria are left out of confidence stats
   faqIds: number[];
   latencyMs: { total: number; llm: number; search: number };
   tokens: { input: number; output: number; cacheRead: number } | null;

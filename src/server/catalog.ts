@@ -3,7 +3,7 @@ import { es, INDEX } from './es.ts';
 import { embed, embedOne, faqText, tripText } from './embeddings.ts';
 import { today } from './config.ts';
 import { kibanaDiscoverUrl } from './kibana.ts';
-import { BOOKABLE_STATUSES, MOODS, PHYSICAL, SALES_STATUSES, type CatalogMeta, type Faq, type Trip } from '../shared/types.ts';
+import { isBookable, MOODS, PHYSICAL, SALES_STATUSES, type CatalogMeta, type Faq, type Trip } from '../shared/types.ts';
 
 // Trips and FAQs: validation, CRUD (re-embedding on write) and the vocabulary the search uses.
 
@@ -130,13 +130,17 @@ export async function bulkLoad(trips: Trip[], faqs: Faq[]) {
 
 // ---------- Vocabulary ----------
 
-let metaCache: Promise<CatalogMeta> | null = null;
+let metaCache: Promise<Omit<CatalogMeta, 'today'>> | null = null;
 export const invalidateMeta = () => (metaCache = null);
-export const getMeta = () => (metaCache ??= buildMeta().catch((err) => ((metaCache = null), Promise.reject(err))));
+// `today` is added per call, outside the cache, so it rolls over at midnight.
+export const getMeta = async (): Promise<CatalogMeta> => ({
+  ...(await (metaCache ??= buildMeta().catch((err) => ((metaCache = null), Promise.reject(err))))),
+  today: today(),
+});
 
-async function buildMeta(): Promise<CatalogMeta> {
+async function buildMeta(): Promise<Omit<CatalogMeta, 'today'>> {
   const trips = await listTrips();
-  const bookable = trips.flatMap((t) => t.tours.filter((d) => BOOKABLE_STATUSES.includes(d.salesStatus) && d.seatsLeft > 0 && d.startingDate > today()));
+  const bookable = trips.flatMap((t) => t.tours.filter((d) => isBookable(d, today())));
   const uniq = (xs: string[]) => [...new Set(xs)].sort();
   const prices = bookable.map((d) => d.priceEur);
   const days = trips.map((t) => t.numberOfDays);
@@ -151,4 +155,18 @@ async function buildMeta(): Promise<CatalogMeta> {
     dateRange: [dates[0] ?? today(), dates.at(-1) ?? today()],
     kibanaUrl: kibanaDiscoverUrl(),
   };
+}
+
+// ---------- Raw documents (backoffice "See raw document") ----------
+
+const PREVIEW_DIMS = 8;
+
+/** The document exactly as stored in Elasticsearch, with the 384-number embedding shortened to a preview. */
+export async function rawDoc(index: typeof INDEX.trips | typeof INDEX.faqs, id: number) {
+  // ES 9 leaves dense vectors out of _source unless asked.
+  const res = await es.get<Record<string, unknown>>({ index, id: String(id), _source_exclude_vectors: false }, { ignore: [404] });
+  if (!res.found) return null;
+  const { embedding, ...doc } = res._source!;
+  const v = embedding as number[] | undefined;
+  return v ? { ...doc, embedding: [...v.slice(0, PREVIEW_DIMS).map((x) => +x.toFixed(4)), `… ${v.length - PREVIEW_DIMS} more (${v.length} dims)`] } : doc;
 }

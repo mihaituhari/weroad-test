@@ -52,7 +52,9 @@ function tripFilters(s: SearchState): Query[] {
   return f;
 }
 
-const mustHaveQuery = (term: string, i: number): Query => ({ multi_match: { query: term, fields: TEXT_FIELDS, operator: 'and', _name: `must:${i}` } });
+// A must-have is "included" only when the trip says it as a phrase ("cooking class"), not when its words
+// appear apart. Synonyms still apply (cook/cooking), so "cooking lesson" pages match "cooking class".
+const mustHaveQuery = (term: string, i: number): Query => ({ multi_match: { query: term, fields: TEXT_FIELDS, type: 'phrase', slop: 2, _name: `must:${i}` } });
 
 /**
  * Two queries in parallel, merged by trip:
@@ -65,7 +67,9 @@ export async function retrieve(s: SearchState, vector: number[] | null, today: s
   const must = (s.mustHave ?? []).map(mustHaveQuery);
   const should: Query[] = [];
   if (s.text) should.push({ multi_match: { query: s.text, fields: TEXT_FIELDS, fuzziness: 'AUTO', prefix_length: 1, _name: 'lexical' } });
-  terms.forEach((t, i) => should.push({ multi_match: { query: t, fields: TEXT_FIELDS, fuzziness: 'AUTO', prefix_length: 1, boost: 0, _name: `term:${i}` } }));
+  // Coverage ("mentions X") is evidence shown to the visitor, so no fuzziness here: "skiing" must not count "sky".
+  // Typos are still tolerated by the `lexical` ranking query above.
+  terms.forEach((t, i) => should.push({ multi_match: { query: t, fields: TEXT_FIELDS, boost: 0, _name: `term:${i}` } }));
   if (vector) should.push({ knn: { field: 'embedding', query_vector: vector, k: 100, num_candidates: 200, _name: 'semantic' } });
   const departures = (filters: Query[]): Query => ({ nested: { path: 'tours', query: { bool: { filter: [...bookable(today), ...filters] } } } });
 

@@ -1,5 +1,5 @@
 import { readFile } from 'node:fs/promises';
-import { bulkLoad } from './catalog.ts';
+import { bulkLoad, invalidateMeta } from './catalog.ts';
 import { config, today } from './config.ts';
 import { ensureIndices, es, INDEX, waitForEs } from './es.ts';
 import type { Faq, Trip } from '../shared/types.ts';
@@ -29,22 +29,45 @@ export function prepareTrips(raw: { exportedAt: string; travels: Trip[] }, now =
 
 const readJson = async (file: string) => JSON.parse(await readFile(new URL(`../../samples/${file}`, import.meta.url), 'utf8'));
 
-const STALE_DAYS = 7;
-
-/** Seeds an empty catalog, or reseeds one whose dates were shifted more than a week ago (a long-running deploy). */
+/**
+ * Seeds an empty catalog (or reseeds on `force`). On a long-running deploy, departures are moved forward
+ * in place by the days elapsed since the last shift, so the demo stays in the future without losing
+ * backoffice edits or reusing ids.
+ */
 export async function seed({ force = false } = {}) {
   await ensureIndices();
   const { count } = await es.count({ index: INDEX.trips });
+  if (count === 0 || force) {
+    if (count > 0) await ensureIndices({ recreate: true });
+    const [trips, faqs] = await Promise.all([readJson('trips.json'), readJson('faqs.json')]);
+    await bulkLoad(prepareTrips(trips), faqs.faqs as Faq[]);
+    await markShifted();
+    return true;
+  }
   const mapping = await es.indices.getMapping({ index: INDEX.trips });
   const seededOn = mapping[INDEX.trips]?.mappings._meta?.seededOn as string | undefined;
-  const stale = config.shiftDates && seededOn && Date.parse(today()) - Date.parse(seededOn) > STALE_DAYS * 86_400_000;
-  if (count > 0 && !force && !stale) return false;
-  if (count > 0) await ensureIndices({ recreate: true });
-  const [trips, faqs] = await Promise.all([readJson('trips.json'), readJson('faqs.json')]);
-  await bulkLoad(prepareTrips(trips), faqs.faqs as Faq[]);
-  await es.indices.putMapping({ index: INDEX.trips, _meta: { seededOn: today() } });
-  return true;
+  const days = seededOn ? Math.round((Date.parse(today()) - Date.parse(seededOn)) / 86_400_000) : 0;
+  if (config.shiftDates && days > 0) {
+    await es.updateByQuery({
+      index: INDEX.trips,
+      refresh: true,
+      conflicts: 'proceed',
+      script: {
+        source: `for (t in ctx._source.tours) {
+          t.startingDate = LocalDate.parse(t.startingDate).plusDays(params.days).toString();
+          t.endingDate = LocalDate.parse(t.endingDate).plusDays(params.days).toString();
+        }`,
+        params: { days },
+      },
+    });
+    await markShifted();
+    invalidateMeta();
+    console.log(`Moved departures forward by ${days} days`);
+  }
+  return false;
 }
+
+const markShifted = () => es.indices.putMapping({ index: INDEX.trips, _meta: { seededOn: today() } });
 
 if (import.meta.main) {
   await waitForEs();

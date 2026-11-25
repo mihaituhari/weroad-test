@@ -94,5 +94,9 @@ export const CASES: EvalCase[] = [
     expect: { state: { continents: ['Asia'], mustHave: ['cook'], budgetMax: 1800, departFrom: nextMonth(12), departTo: nextMonth(2) }, topAnyOf: [15, 19, 40] },
   },
   { id: 'multi-easy-hike-friends', tags: ['multi-turn', 'physical', 'group', 'filters'], start: { text: 'hiking' }, turns: ['nothing too hard, we are 3 friends', 'only confirmed departures please'], expect: { state: { physical: ['LOW'], minSeats: 3, confirmedOnly: true } } },
+  // Regressions found by the review (docs/ai-workflow/review.workflow.js)
+  { id: 'sort-keeps-closest', tags: ['honesty', 'review'], start: { destinations: ['Japan'], budgetMax: 2000, sort: 'price' }, turns: [], expect: { zeroExact: true, topAnyOf: [2, 15, 8, 16, 19, 7], maxConfidence: 0.7 } },
+  { id: 'must-snorkel-europe', tags: ['honesty', 'must-have', 'review'], start: { mustHave: ['snorkeling'], continents: ['Europe'] }, turns: [], expect: { zeroExact: true, maxConfidence: 0.7 } },
+  { id: 'all-unmatched-classic', tags: ['honesty', 'review'], start: { destinations: ['Antarctica'] }, turns: [], expect: { unmatched: true, maxConfidence: 0.3 } },
   { id: 'multi-loosen-budget', tags: ['multi-turn', 'budget'], start: { destinations: ['Iceland'], budgetMax: 1000 }, turns: ['ok, I can stretch to 2000'], expect: { state: { destinations: ['Iceland'], budgetMax: 2000 }, topAnyOf: [9], minExact: 1 } },
 ];

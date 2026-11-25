@@ -4,7 +4,7 @@ import { config } from './config.ts';
 
 export const es = new Client({ node: config.esUrl });
 
-export const INDEX = { trips: 'trips', faqs: 'faqs', searches: 'searches' } as const;
+export const INDEX = { trips: 'trips', faqs: 'faqs', searches: 'searches', settings: 'settings' } as const;
 export const EMBEDDING_DIMS = 384;
 
 // Search-time synonyms: travel vocabulary users type vs words trip pages use.
@@ -19,7 +19,8 @@ const SYNONYMS = [
   'nightlife, party, clubbing, bars, club',
   'christmas, xmas, christmas markets',
   'ruins, archaeological, archaeology, ancient',
-  'snorkel, snorkeling, snorkelling, diving, scuba',
+  'snorkel, snorkeling, snorkelling',
+  'scuba, scuba diving', // not bare "diving": trip texts say "dive into the old town"
   'temple, temples, pagoda, shrine',
   'volcano, volcanoes, volcanic',
   'spa, wellness, sauna, thermal baths, hot springs',
@@ -108,7 +109,8 @@ const faqsMapping: estypes.MappingTypeMapping = {
   },
 };
 
-// The search log is append-only analytics data, so it's built for Kibana: keywords + flattened states.
+// The search log is analytics data, written once per search and then updated with clicks and feedback.
+// Built for Kibana: keywords + flattened states, with ignore_above so one oversized value can't reject a log.
 const searchesMapping: estypes.MappingTypeMapping = {
   dynamic: 'strict',
   properties: {
@@ -117,24 +119,28 @@ const searchesMapping: estypes.MappingTypeMapping = {
     sessionId: { type: 'keyword' },
     mode: { type: 'keyword' },
     message: { type: 'text', fields: { raw: { type: 'keyword', ignore_above: 512 } } },
-    stateIn: { type: 'flattened' },
-    stateOut: { type: 'flattened' },
+    query: { type: 'text', fields: { raw: { type: 'keyword', ignore_above: 512 } } },
+    stateIn: { type: 'flattened', ignore_above: 512 },
+    stateOut: { type: 'flattened', ignore_above: 512 },
     interpreter: { type: 'keyword' },
     model: { type: 'keyword' },
     reply: { type: 'text' },
-    unmatched: { type: 'keyword' },
+    unmatched: { type: 'keyword', ignore_above: 256 },
     relaxed: { type: 'keyword' },
     zeroExact: { type: 'boolean' },
     exactCount: { type: 'integer' },
     resultCount: { type: 'integer' },
-    results: { properties: { tripId: { type: 'integer' }, title: { type: 'keyword' }, confidence: { type: 'float' }, exact: { type: 'boolean' } } },
+    results: {
+      properties: { tripId: { type: 'integer' }, title: { type: 'keyword', fields: { text: { type: 'text' } } }, confidence: { type: 'float' }, exact: { type: 'boolean' } },
+    },
     confidence: { type: 'float' },
     confidenceLevel: { type: 'keyword' },
+    hasCriteria: { type: 'boolean' },
     faqIds: { type: 'integer' },
     latencyMs: { properties: { total: { type: 'integer' }, llm: { type: 'integer' }, search: { type: 'integer' } } },
     tokens: { properties: { input: { type: 'integer' }, output: { type: 'integer' }, cacheRead: { type: 'integer' } } },
     costUsd: { type: 'float' },
-    error: { type: 'keyword' },
+    error: { type: 'keyword', ignore_above: 512 },
     version: { type: 'keyword' },
     clicks: { properties: { tripId: { type: 'integer' }, position: { type: 'integer' }, exact: { type: 'boolean' }, at: { type: 'date' } } },
     feedback: {
@@ -147,20 +153,29 @@ const searchesMapping: estypes.MappingTypeMapping = {
   },
 };
 
+// One document (id "app"): runtime settings edited in /admin.
+const settingsMapping: estypes.MappingTypeMapping = {
+  dynamic: 'strict',
+  properties: { llmModel: { type: 'keyword' }, dailyLlmBudgetUsd: { type: 'float' }, llmTimeoutMs: { type: 'integer' }, updatedAt: { type: 'date' } },
+};
+
 const DEFINITIONS = {
   [INDEX.trips]: { settings: textAnalysis, mappings: tripsMapping },
   [INDEX.faqs]: { settings: textAnalysis, mappings: faqsMapping },
   [INDEX.searches]: { mappings: searchesMapping },
+  [INDEX.settings]: { mappings: settingsMapping },
 };
+// Only the catalog is rebuilt by a reset; the search log and settings are kept.
+const REBUILDABLE: string[] = [INDEX.trips, INDEX.faqs];
 
 /**
  * Creates missing indices and applies additive mapping changes to existing ones (new fields).
- * With `recreate`, drops and recreates the catalog indices (never the search log).
+ * With `recreate`, drops and recreates the catalog indices (never the search log or settings).
  */
 export async function ensureIndices({ recreate = false } = {}) {
   for (const [index, body] of Object.entries(DEFINITIONS)) {
     const exists = await es.indices.exists({ index });
-    if (exists && recreate && index !== INDEX.searches) await es.indices.delete({ index });
+    if (exists && recreate && REBUILDABLE.includes(index)) await es.indices.delete({ index });
     else if (exists) {
       await es.indices.putMapping({ index, ...body.mappings }).catch((err) => console.warn(`[es] ${index} mapping not updated: ${err.message}`));
       continue;

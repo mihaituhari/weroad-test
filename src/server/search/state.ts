@@ -1,14 +1,22 @@
 import { z } from 'zod';
 import { MOODS, PHYSICAL, type CatalogMeta, type SearchState } from '../../shared/types.ts';
 
-const date = z.string().regex(/^\d{4}-\d{2}-\d{2}$/);
+/** YYYY-MM-DD that exists on the calendar (2027-02-29 doesn't, and Elasticsearch would 500 on it). */
+const isRealDate = (d: string) => {
+  const [y, m, day] = d.split('-').map(Number);
+  const t = new Date(Date.UTC(y, m - 1, day));
+  return t.getUTCFullYear() === y && t.getUTCMonth() === m - 1 && t.getUTCDate() === day;
+};
+const date = z.string().regex(/^\d{4}-\d{2}-\d{2}$/).refine(isRealDate, 'not a calendar date');
+// Size caps keep queries and log documents bounded (a 30-word text already hits ES's clause limit).
+const words = z.array(z.string().max(60)).max(20);
 
 export const SearchStateSchema = z.object({
-  text: z.string().optional(),
-  mustHave: z.array(z.string()).optional(),
-  destinations: z.array(z.string()).optional(),
-  continents: z.array(z.string()).optional(),
-  travelTypes: z.array(z.string()).optional(),
+  text: z.string().max(200).optional(),
+  mustHave: z.array(z.string().max(60)).max(5).optional(),
+  destinations: words.optional(),
+  continents: words.optional(),
+  travelTypes: words.optional(),
   departFrom: date.optional(),
   departTo: date.optional(),
   returnBy: date.optional(),
@@ -16,7 +24,7 @@ export const SearchStateSchema = z.object({
   durationMin: z.number().int().positive().optional(),
   durationMax: z.number().int().positive().optional(),
   physical: z.array(z.enum(PHYSICAL)).optional(),
-  ageBands: z.array(z.string()).optional(),
+  ageBands: words.optional(),
   womenOnly: z.boolean().optional(),
   privateRoom: z.boolean().optional(),
   confirmedOnly: z.boolean().optional(),
@@ -29,7 +37,7 @@ export const SearchRequestSchema = z.object({
   sessionId: z.string().min(1).max(100),
   state: SearchStateSchema,
   message: z.string().trim().max(500).optional(),
-  history: z.array(z.object({ role: z.enum(['user', 'assistant']), text: z.string().max(2000) })).max(20).optional(),
+  history: z.array(z.object({ role: z.enum(['user', 'assistant']), text: z.string().max(1000) })).max(12).optional(),
 });
 
 const matchVocab = (values: string[] | undefined, vocab: string[], unmatched: string[]) => {
@@ -70,8 +78,13 @@ export function normalizeState(input: SearchState, meta: CatalogMeta): { state: 
   return { state: s, unmatched };
 }
 
-/** Masks emails and phone numbers (8+ digits) before the LLM call and the search log. */
+/**
+ * Masks emails and phone numbers before the LLM call and the search log. Phones are numbers with an
+ * international prefix, or 9+ digits separated only by spaces: dates (2026-12-19, 19.12.2026) and price
+ * ranges (1500-2500) use other separators and are kept.
+ */
 export const redact = (text: string) =>
   text
     .replace(/[\w.+-]+@[\w-]+\.[\w.-]+/g, '[email]')
-    .replace(/\+?\d[\d\s().-]{6,}\d/g, (m) => (m.replace(/\D/g, '').length >= 8 ? '[phone]' : m));
+    .replace(/(?:\+|\b00)\d[\d\s().-]{6,}\d/g, '[phone]')
+    .replace(/\b\d[\d\s()]{7,}\d\b/g, (m) => (m.replace(/\D/g, '').length >= 9 ? '[phone]' : m));

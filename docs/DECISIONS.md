@@ -26,7 +26,7 @@ The demo has all four. Steps 1–2 are deterministic and unit-tested; the LLM on
 
 One Node 24 service (Hono API + React SPA built by Vite) and Elasticsearch 9.5, plus Kibana. TypeScript everywhere, with one shared contract (`src/shared/types.ts`). Node runs the server's `.ts` directly, so there is no server build step.
 
-**Why Elasticsearch, and as the only store.** This is a search problem: BM25 with travel synonyms and fuzziness, nested departures filtered by bookability, dates, price and seats, and kNN on embeddings, all in one query. `include_named_queries_score` returns the lexical and semantic scores of each hit separately, which is what makes the confidence explainable. The search log is append-only analytics, so it lives in the same cluster and Kibana works on it immediately. I considered Postgres + pgvector, which is better for transactional CRUD, but nothing here needs transactions, and it would mean a second store plus a hand-built analytics UI. In production the catalog's source of truth stays WeRoad's backend; ES would be a projection of it.
+**Why Elasticsearch, and as the only store.** This is a search problem: BM25 with travel synonyms and fuzziness, nested departures filtered by bookability, dates, price and seats, and kNN on embeddings, all in one query. `include_named_queries_score` returns the lexical and semantic scores of each hit separately, which is what makes the confidence explainable. The search log is analytics data (written once per search, then updated with clicks and feedback), so it lives in the same cluster and Kibana works on it immediately. I considered Postgres + pgvector, which is better for transactional CRUD, but nothing here needs transactions, and it would mean a second store plus a hand-built analytics UI. In production the catalog's source of truth stays WeRoad's backend; ES would be a projection of it.
 
 **Local embeddings** (`all-MiniLM-L6-v2`, 384 dims, ~1 ms per query, baked into the image): no second API key, no network at query time. On our own trip texts, MiniLM separated related and unrelated trips better than `bge-small`.
 
@@ -103,4 +103,18 @@ A/B test by session: classic search vs classic + assistant.
 
 ## Risks and next steps
 
-<!-- RISKS -->
+**Risks I accepted for a demo, and what production needs:**
+- **The backoffice has no auth** (by request). On a public URL anyone could edit or reset the catalog. For deploys: an optional admin token on write routes, plus a scheduled catalog restore.
+- **Elasticsearch and Kibana run without security.** Locally they're bound to 127.0.0.1. On Railway, ES must stay on the private network, and Kibana needs either security (`ELASTIC_PASSWORD` + `kibana_system`) or no public domain. `/admin` covers the stats either way.
+- **LLM abuse.** Assistant turns are rate-limited per visitor (20 per 5 minutes). A daily spend cap, counted in-process and including timeouts, falls back to the rules parser. Request bodies and fields have size limits.
+- **Privacy.** Emails and phone numbers are redacted in messages, history, state text and feedback comments before the LLM and the log. Next: a retention policy on the log (e.g. 30 days).
+- **Stateless conversation.** A client can forge its own history; it only affects its own search.
+- **Synonyms are baked into the index settings**, so changing them needs a reindex (`npm run seed`). Next: the ES synonyms API and an "add synonym" action next to zero-result queries in `/admin`.
+
+**Next steps, in order:**
+1. A/B test with click tracking (already logged), then booking starts.
+2. Calibrate the confidence thresholds on real outcomes (the CTR and 👍-rate per confidence level in `/admin`).
+3. Turn down-voted searches into eval cases from `/admin`.
+4. Multilingual embeddings and eval cases.
+5. A cheaper model path: prompt caching once the prefix is long enough, skipping the LLM when the rules parser fully consumes the message, and Haiku once the eval shows it holds quality.
+6. Departure-level FAQs on cards (deposit, "open to book", flights not included) instead of a destination's currency or plugs.

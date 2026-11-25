@@ -9,6 +9,7 @@ type Sort = NonNullable<SearchState['sort']>;
 interface Props {
   response: SearchResponse | null;
   busy: boolean;
+  locked: boolean; // the assistant is thinking: sorting or narrowing now would drop its turn
   error: string | null;
   sort?: Sort;
   onSort: (sort: Sort) => void;
@@ -16,14 +17,14 @@ interface Props {
   onRefine: (patch: SearchState) => void;
 }
 
-export function Results({ response, busy, error, sort = 'relevance', onSort, onRetry, onRefine }: Props) {
+export function Results({ response, busy, locked, error, sort = 'relevance', onSort, onRetry, onRefine }: Props) {
   return (
     <section className={`results${busy ? ' is-busy' : ''}`} aria-busy={busy}>
       <div className="results__head">
         <h2>{response ? heading(response) : 'Searching…'}</h2>
         <label className="sort">
           Sort by
-          <select value={sort} onChange={(e) => onSort(e.target.value as Sort)}>
+          <select value={sort} disabled={locked} onChange={(e) => onSort(e.target.value as Sort)}>
             <option value="relevance">Best match</option>
             <option value="price">Price</option>
             <option value="date">Soonest</option>
@@ -40,13 +41,14 @@ export function Results({ response, busy, error, sort = 'relevance', onSort, onR
         </div>
       )}
 
-      {response ? <Found response={response} onRefine={onRefine} /> : !error && <Skeleton />}
+      {response ? <Found response={response} locked={locked} onRefine={onRefine} /> : !error && <Skeleton />}
     </section>
   );
 }
 
 // exactCount counts every exact trip in the catalog; results is only the top of the list.
-function heading({ results, exactCount }: SearchResponse) {
+function heading({ results, exactCount, hasCriteria }: SearchResponse) {
+  if (!hasCriteria) return `${exactCount} trips with open departures${exactCount > results.length ? ` · ${results.length} shown` : ''}`;
   const closest = results.filter((r) => !r.exact).length;
   const match = exactCount === 1 ? '1 trip matches' : `${exactCount} trips match`;
   if (!closest) return `${match} your search${exactCount > results.length ? ` · top ${results.length} shown` : ''}`;
@@ -54,27 +56,34 @@ function heading({ results, exactCount }: SearchResponse) {
   return `${match} + ${closest} closest options`;
 }
 
-function Found({ response, onRefine }: { response: SearchResponse; onRefine: (patch: SearchState) => void }) {
-  const { searchId, confidence: c, relaxed, unmatched, results, interpreter, exactCount, suggestions } = response;
+function Found({ response, locked, onRefine }: { response: SearchResponse; locked: boolean; onRefine: (patch: SearchState) => void }) {
+  const { searchId, confidence: c, relaxed, unmatched, results, interpreter, exactCount, suggestions, hasCriteria } = response;
   return (
     <>
-      <div className={`banner banner--${c.level}`}>
-        <p>
-          <strong>{pct(c.score)} confident</strong> · {c.explanation}
-        </p>
-        <details>
-          <summary>How we scored this</summary>
-          <ul>
-            <li>
-              <strong>{pct(c.understanding)}</strong> understanding: how sure we are that we read your request right
-            </li>
-            <li>
-              <strong>{pct(c.matchQuality)}</strong> match quality: how well the top trips fit it
-            </li>
-            <li>Interpreted by: {INTERPRETER_LABEL[interpreter]}</li>
-          </ul>
-        </details>
-      </div>
+      {/* Nothing asked yet: no score to show, just an invitation. */}
+      {!hasCriteria ? (
+        <div className="banner">
+          <p>{c.explanation}</p>
+        </div>
+      ) : (
+        <div className={`banner banner--${c.level}`}>
+          <p>
+            <strong>{pct(c.score)} confident</strong> · {c.explanation}
+          </p>
+          <details>
+            <summary>How we scored this</summary>
+            <ul>
+              <li>
+                <strong>{pct(c.understanding)}</strong> understanding: how sure we are that we read your request right
+              </li>
+              <li>
+                <strong>{pct(c.matchQuality)}</strong> match quality: how well the top trips fit it
+              </li>
+              <li>Interpreted by: {INTERPRETER_LABEL[interpreter]}</li>
+            </ul>
+          </details>
+        </div>
+      )}
 
       {relaxed.length > 0 && (
         <div className="notice notice--warning">
@@ -88,25 +97,26 @@ function Found({ response, onRefine }: { response: SearchResponse; onRefine: (pa
       )}
       {unmatched.length > 0 && <div className="notice">We couldn't find trips for: {unmatched.join(', ')}.</div>}
 
-      {suggestions.length > 0 && <Narrow suggestions={suggestions} onRefine={onRefine} />}
+      {suggestions.length > 0 && <Narrow suggestions={suggestions} locked={locked} onRefine={onRefine} />}
 
       {results.length ? (
         <div className="grid">
           {results.map((r, i) => (
-            <ResultCard key={`${searchId}:${r.trip.id}`} result={r} searchId={searchId} position={i + 1} />
+            <ResultCard key={`${searchId}:${r.trip.id}`} result={r} searchId={searchId} position={i + 1} scored={hasCriteria} />
           ))}
         </div>
       ) : (
         <p className="notice">No bookable departures right now. Try removing a filter.</p>
       )}
 
-      <SearchFeedback key={searchId} searchId={searchId} />
+      {/* Searches without criteria aren't logged, so there is nothing to rate. */}
+      {hasCriteria && <SearchFeedback key={searchId} searchId={searchId} />}
     </>
   );
 }
 
 /** For visitors who don't know what they want yet: one click narrows a broad search. */
-function Narrow({ suggestions, onRefine }: { suggestions: Suggestion[]; onRefine: (patch: SearchState) => void }) {
+function Narrow({ suggestions, locked, onRefine }: { suggestions: Suggestion[]; locked: boolean; onRefine: (patch: SearchState) => void }) {
   const facets = Map.groupBy(suggestions, (s) => s.facet);
   return (
     <div className="narrow">
@@ -115,7 +125,7 @@ function Narrow({ suggestions, onRefine }: { suggestions: Suggestion[]; onRefine
         <div key={facet} className="narrow__row">
           <span className="muted">{facet}</span>
           {items.map((s) => (
-            <button key={s.label} type="button" className="chip chip--suggest" onClick={() => onRefine(s.patch)}>
+            <button key={s.label} type="button" className="chip chip--suggest" disabled={locked} onClick={() => onRefine(s.patch)}>
               {s.label} <span className="muted">· {s.count}</span>
             </button>
           ))}

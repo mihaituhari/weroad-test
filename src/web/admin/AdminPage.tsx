@@ -4,9 +4,10 @@ import { Alert, useAction, useLoad } from './ui.tsx';
 import { SearchesTab } from './SearchesTab.tsx';
 import { TripsTab } from './TripsTab.tsx';
 import { FaqsTab } from './FaqsTab.tsx';
+import { SettingsTab } from './SettingsTab.tsx';
 import './admin.css';
 
-const TABS = { searches: 'Searches', trips: 'Trips', faqs: 'FAQs' };
+const TABS = { searches: 'Searches', trips: 'Trips', faqs: 'FAQs', settings: 'Settings' };
 type Tab = keyof typeof TABS;
 
 // The hash holds the tab and the open record (#trips/12, #faqs/new), so links and the back button just work.
@@ -26,6 +27,12 @@ export function AdminPage() {
     window.addEventListener('hashchange', onHash);
     return () => window.removeEventListener('hashchange', onHash);
   }, []);
+
+  useEffect(() => {
+    const { tab, id } = route;
+    const record = id === null ? null : id === 'new' ? (tab === 'trips' ? 'New trip' : 'New FAQ') : `${tab === 'trips' ? 'Trip' : 'FAQ'} #${id}`;
+    document.title = [record, TABS[tab], 'Backoffice', 'WeRoad'].filter(Boolean).join(' · ');
+  }, [route]);
 
   const select = (id: string | number | null) => {
     location.hash = id === null ? route.tab : `${route.tab}/${id}`;
@@ -64,8 +71,9 @@ export function AdminPage() {
       {meta.data && (
         <div key={version}>
           {route.tab === 'searches' && <SearchesTab />}
-          {route.tab === 'trips' && <TripsTab meta={meta.data} selected={route.id} select={select} />}
-          {route.tab === 'faqs' && <FaqsTab meta={meta.data} selected={route.id} select={select} />}
+          {route.tab === 'trips' && <TripsTab meta={meta.data} selected={route.id} select={select} reloadMeta={meta.reload} />}
+          {route.tab === 'settings' && <SettingsTab />}
+          {route.tab === 'faqs' && <FaqsTab meta={meta.data} selected={route.id} select={select} reloadMeta={meta.reload} />}
         </div>
       )}
     </main>

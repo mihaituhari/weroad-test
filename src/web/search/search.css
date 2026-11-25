@@ -8,6 +8,27 @@
   margin-bottom: 16px;
 }
 
+/* Search bar, filters and chips: one group, disabled while the assistant is thinking. */
+.classic {
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+.classic:disabled,
+.sort select:disabled,
+.chip--suggest:disabled {
+  opacity: 0.55;
+}
+/* <summary> is not a form control, so the fieldset can't disable the filter pills by itself. */
+.classic:disabled summary {
+  pointer-events: none;
+}
+.chip:disabled {
+  background: var(--surface);
+  cursor: not-allowed;
+}
+
 /* ---------- Search bar: "Where / what?" and "When?" in one box ---------- */
 
 .searchbar {

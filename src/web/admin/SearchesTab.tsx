@@ -1,7 +1,7 @@
 import { Fragment, useState } from 'react';
 import { api } from '../api.ts';
-import type { SearchLog, SearchLogQuery, SearchState } from '../../shared/types.ts';
-import { Alert, Field, pct, useLoad } from './ui.tsx';
+import type { SearchLog, SearchLogQuery, SearchState, SearchStats } from '../../shared/types.ts';
+import { Alert, Field, pct, RawDocument, rowClick, Tip, useLoad } from './ui.tsx';
 
 const PAGE_SIZE = 25;
 const usd = (n: number) => `$${n.toFixed(4)}`;
@@ -45,53 +45,53 @@ export function SearchesTab() {
       {s && (
         <>
           <div className="adm-stats">
-            <Stat label="Searches" value={s.total} />
-            <Stat label="Assistant share" value={pct(s.assistantShare)} />
-            <Stat label="Zero exact results" value={pct(s.zeroExactRate)} />
-            <Stat label="Avg confidence" value={pct(s.avgConfidence)} />
-            <Stat label="Feedback" value={`👍 ${s.feedbackUp} · 👎 ${s.feedbackDown}`} />
-            <Stat label="Opened a trip (CTR)" value={pct(s.ctr)} />
-            <Stat label="Zero-exact rescued" value={pct(s.rescueRate)} />
-            <Stat label="Latency p50 / p95" value={`${ms(s.latencyP50)} / ${ms(s.latencyP95)}`} />
-            <Stat label="LLM cost" value={usd(s.totalCostUsd)} />
+            <Stat label="Searches" value={s.total} help="Searches logged: every classic search and every assistant turn" />
+            <Stat label="Assistant share" value={pct(s.assistantShare)} help="Share of searches that were assistant turns (a message typed to the assistant)" />
+            <Stat
+              label="Zero exact results"
+              value={pct(s.zeroExactRate)}
+              help="Share of searches where no trip matched every constraint (closest options were shown instead)"
+            />
+            <Stat label="Avg confidence" value={pct(s.avgConfidence)} help="Mean search confidence: how sure we were we understood the request × quality of the top results" />
+            <Stat
+              label="Feedback"
+              value={`👍 ${s.feedbackUp} · 👎 ${s.feedbackDown}`}
+              help="Searches with an up or down vote from the visitor, on the result list or on a single trip"
+            />
+            <Stat label="Opened a trip (CTR)" value={pct(s.ctr)} help="Share of searches where the visitor clicked at least one trip" />
+            <Stat label="Zero-exact rescued" value={pct(s.rescueRate)} help="Of the zero-exact searches, share where the visitor still opened a closest option" />
+            <Stat
+              label="Latency p50 / p95"
+              value={`${ms(s.latencyP50)} / ${ms(s.latencyP95)}`}
+              help="Server time per search: median / 95th percentile. Assistant turns are mostly LLM time"
+            />
+            <Stat label="LLM cost" value={usd(s.totalCostUsd)} help="Total spent on Claude for all logged searches, in USD" />
           </div>
           <div className="adm-split">
             <TopList title="Unmatched requests" items={s.topUnmatched.map((u) => [u.term, u.count])} onPick={(q) => filter({ q })} />
-            <TopList title="Zero-result queries" items={s.topZeroQueries.map((z) => [z.message, z.count])} onPick={(q) => filter({ q })} />
+            <TopList
+              title="Zero-result queries"
+              items={s.topZeroQueries.map((z) => [z.message, z.count])}
+              onPick={(q) => filter({ q, zeroExact: true })}
+            />
           </div>
           <p className="adm-hint">
             What visitors asked for and we could not serve: the backlog for improving the interpreter, the synonyms and the catalog. Click one to filter the log.
           </p>
           <div className="adm-card adm-calibration">
             <h3>Is our confidence honest?</h3>
-            <table className="adm-table">
-              <thead>
-                <tr>
-                  <th>Confidence</th>
-                  <th>Searches</th>
-                  <th>Opened a trip</th>
-                  <th>👍 rate</th>
-                </tr>
-              </thead>
-              <tbody>
-                {s.byLevel.map((l) => (
-                  <tr key={l.level}>
-                    <td>{l.level}</td>
-                    <td>{l.searches}</td>
-                    <td>{pct(l.ctr)}</td>
-                    <td>{l.upRate === null ? '–' : pct(l.upRate)}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-            <p className="adm-hint">High-confidence searches should be opened and up-voted more often than low ones. If they aren't, the scoring needs recalibrating.</p>
+            <Calibration levels={s.byLevel} />
+            <p className="adm-hint">
+              High-confidence searches should be opened and up-voted more often than low ones. If they aren't, the scoring needs recalibrating. Bars
+              are relative to the level with the highest rate.
+            </p>
           </div>
         </>
       )}
 
       <div className="adm-filters">
         <Field label="Search text">
-          <input type="search" value={query.q ?? ''} onChange={(e) => filter({ q: e.target.value })} placeholder="message, reply, unmatched, trip" />
+          <input type="search" value={query.q ?? ''} onChange={(e) => filter({ q: e.target.value })} placeholder="query, reply, unmatched, trip" />
         </Field>
         <Choice label="Mode" value={query.mode} options={['classic', 'assistant']} onChange={(v) => filter({ mode: v as SearchLogQuery['mode'] })} />
         <Choice label="Confidence" value={query.level} options={['high', 'medium', 'low']} onChange={(v) => filter({ level: v as SearchLogQuery['level'] })} />
@@ -118,51 +118,80 @@ export function SearchesTab() {
         <table className="adm-table">
           <thead>
             <tr>
-              <th>Time</th>
-              <th>Mode</th>
-              <th>Search</th>
-              <th>Interpreter</th>
-              <th className="adm-num">Exact / total</th>
-              <th>Confidence</th>
-              <th>Feedback</th>
-              <th className="adm-num">Latency</th>
-              <th className="adm-num">Cost</th>
+              <th>
+                <Tip text="When the search ran, in your timezone">Time</Tip>
+              </th>
+              <th>
+                <Tip text="classic = search bar and filters, assistant = a message typed to the assistant">Mode</Tip>
+              </th>
+              <th>
+                <Tip text="What the visitor typed; for a filters-only search, a summary of the filters">Search</Tip>
+              </th>
+              <th>
+                <Tip text="llm = Claude read the message, rules = fallback parser (AI unavailable), none = classic search (no AI)">Interpreter</Tip>
+              </th>
+              <th className="adm-num">
+                <Tip text="Trips matching every constraint / trips shown (incl. closest options)">Exact / total</Tip>
+              </th>
+              <th>
+                <Tip text="Search confidence: understanding × quality of the top results">Confidence</Tip>
+              </th>
+              <th>
+                <Tip text="Visitor vote on the result list (👍/👎), 💬 = left a comment; trip-level votes are in the details">Feedback</Tip>
+              </th>
+              <th className="adm-num">
+                <Tip text="Total server time; for assistant turns mostly the LLM">Latency</Tip>
+              </th>
+              <th className="adm-num">
+                <Tip text="LLM cost of this turn in USD">Cost</Tip>
+              </th>
             </tr>
           </thead>
           <tbody>
-            {logs.data?.items.map((log) => (
-              <Fragment key={log.id}>
-                <tr className={`adm-row${open === log.id ? ' adm-row--open' : ''}`} onClick={() => setOpen(open === log.id ? null : log.id)}>
-                  <td className="adm-nowrap">{when(log.at)}</td>
-                  <td>
-                    <span className={`adm-tag adm-tag--${log.mode}`}>{log.mode}</span>
-                  </td>
-                  <td className="adm-ellipsis" title={log.message ?? summarize(log.stateOut)}>
-                    {log.message ?? <span className="adm-muted">{summarize(log.stateOut)}</span>}
-                  </td>
-                  <td>{log.interpreter}</td>
-                  <td className="adm-num">
-                    {log.exactCount}/{log.resultCount}
-                  </td>
-                  <td>
-                    <span className={`adm-badge adm-badge--${log.confidenceLevel}`}>{pct(log.confidence)}</span>
-                  </td>
-                  <td>
-                    {voteIcon(log.feedback.vote)}
-                    {log.feedback.comment && ' 💬'}
-                  </td>
-                  <td className="adm-num">{log.latencyMs.total} ms</td>
-                  <td className="adm-num">{usd(log.costUsd)}</td>
-                </tr>
-                {open === log.id && (
-                  <tr>
-                    <td colSpan={9}>
-                      <Details log={log} />
+            {logs.data?.items.map((log) => {
+              const isOpen = open === log.id;
+              const toggle = () => setOpen(isOpen ? null : log.id);
+              // What the visitor typed (assistant message or search text); a filters-only search has nothing typed.
+              const typed = log.query ?? log.message;
+              return (
+                <Fragment key={log.id}>
+                  <tr className={`adm-row${isOpen ? ' adm-row--open' : ''}`} onClick={rowClick(toggle)}>
+                    <td className="adm-nowrap">
+                      <button type="button" className="adm-toggle" aria-expanded={isOpen} aria-label="Details" onClick={toggle}>
+                        {isOpen ? '▾' : '▸'}
+                      </button>
+                      {when(log.at)}
                     </td>
+                    <td>
+                      <span className={`adm-tag adm-tag--${log.mode}`}>{log.mode}</span>
+                    </td>
+                    <td className="adm-ellipsis" title={typed ?? summarize(log.stateOut)}>
+                      {typed ?? <span className="adm-muted">{summarize(log.stateOut)}</span>}
+                    </td>
+                    <td>{log.interpreter}</td>
+                    <td className="adm-num">
+                      {log.exactCount}/{log.resultCount}
+                    </td>
+                    <td>
+                      <span className={`adm-badge adm-badge--${log.confidenceLevel}`}>{pct(log.confidence)}</span>
+                    </td>
+                    <td>
+                      {voteIcon(log.feedback.vote)}
+                      {log.feedback.comment && ' 💬'}
+                    </td>
+                    <td className="adm-num">{log.latencyMs.total} ms</td>
+                    <td className="adm-num">{usd(log.costUsd)}</td>
                   </tr>
-                )}
-              </Fragment>
-            ))}
+                  {isOpen && (
+                    <tr>
+                      <td colSpan={9}>
+                        <Details log={log} />
+                      </td>
+                    </tr>
+                  )}
+                </Fragment>
+              );
+            })}
             {logs.data?.items.length === 0 && (
               <tr>
                 <td colSpan={9} className="adm-empty">
@@ -189,10 +218,43 @@ export function SearchesTab() {
   );
 }
 
-const Stat = ({ label, value }: { label: string; value: string | number }) => (
+const Stat = ({ label, value, help }: { label: string; value: string | number; help: string }) => (
   <div className="adm-card adm-stat">
-    <span>{label}</span>
+    <span>
+      <Tip text={help}>{label}</Tip>
+    </span>
     <strong>{value}</strong>
+  </div>
+);
+
+/** One column per confidence level, so the levels compare at a glance. */
+function Calibration({ levels }: { levels: SearchStats['byLevel'] }) {
+  const best = Math.max(...levels.map((l) => l.ctr), 0.0001);
+  const bestUp = Math.max(...levels.map((l) => l.upRate ?? 0), 0.0001);
+  return (
+    <div className="adm-levels">
+      {levels.map((l) => (
+        <div key={l.level} className={`adm-level adm-level--${l.level}`}>
+          <span className={`adm-badge adm-badge--${l.level}`}>{l.level} confidence</span>
+          <div className="adm-level__rows">
+            <span>Searches</span>
+            <strong>{l.searches}</strong>
+            <span>Opened a trip</span>
+            <strong>{pct(l.ctr)}</strong>
+            <Meter value={l.ctr / best} />
+            <span>👍 rate</span>
+            <strong>{l.upRate === null ? '–' : pct(l.upRate)}</strong>
+            <Meter value={(l.upRate ?? 0) / bestUp} />
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+const Meter = ({ value }: { value: number }) => (
+  <div className="adm-meter" aria-hidden>
+    <span style={{ width: `${Math.round(value * 100)}%` }} />
   </div>
 );
 
@@ -235,8 +297,13 @@ function Choice({ label, value, options, onChange }: { label: string; value?: st
 function Details({ log }: { log: SearchLog }) {
   const votes = new Map(log.feedback.results.map((r) => [r.tripId, r.vote]));
   const { total, llm, search } = log.latencyMs;
+  const titleOf = new Map(log.results.map((r) => [r.tripId, r.title]));
+  const clicks = log.clicks ?? []; // logs written before click tracking have none
   return (
     <div className="adm-details">
+      <div className="adm-details__bar">
+        <RawDocument load={() => Promise.resolve(log)} title="Search log entry" note={`id ${log.id}, as stored in the searches index`} />
+      </div>
       <dl>
         {log.message && (
           <>
@@ -283,6 +350,22 @@ function Details({ log }: { log: SearchLog }) {
         <dt>Feedback</dt>
         <dd>
           {voteIcon(log.feedback.vote)} {log.feedback.comment && `“${log.feedback.comment}”`}
+        </dd>
+        <dt>Clicks</dt>
+        <dd>
+          {clicks.length ? (
+            <ul className="adm-list adm-list--plain">
+              {clicks.map((c, i) => (
+                <li key={i}>
+                  <span className="adm-muted">{when(c.at)}</span> · #{c.position}{' '}
+                  <a href={`#trips/${c.tripId}`}>{titleOf.get(c.tripId) ?? `Trip #${c.tripId}`}</a>{' '}
+                  {c.exact ? <span className="adm-tag adm-tag--exact">exact</span> : <span className="adm-tag">closest</span>}
+                </li>
+              ))}
+            </ul>
+          ) : (
+            '—'
+          )}
         </dd>
         <dt>Session</dt>
         <dd className="adm-muted">{log.sessionId}</dd>

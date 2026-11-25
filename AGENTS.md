@@ -38,6 +38,9 @@ eval/                      offline eval: cases + runner (quality, latency, cost)
 
 ## Search pipeline (`src/server/search/`)
 
+Human-readable walkthrough with diagrams: `docs/SEARCH.md` (keep it in sync when the pipeline changes).
+
+
 `run.ts` orchestrates one turn: `interpret` → `retrieve` → `match` → `confidence` → log.
 
 1. **interpret.ts** — NL message + current state → new state. Claude returns the full new `SearchState`, a short reply, `unmatched` requirements, and (if the user asked a question) an answer grounded only in the FAQ candidates retrieved for that message (cited ids are checked). Output is validated and normalized against the catalog vocabulary. Falls back to **rules.ts** on missing key, timeout (10 s), refusal, invalid output or the daily LLM budget. **LLM schema rule:** every field required, empty value = unset; never optional/nullable (the API caps unions at 16 and optionals make the grammar compile for 90 s+). Bump `PROMPT_VERSION` when the prompt or schema changes.

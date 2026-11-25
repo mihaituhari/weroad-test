@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { parseRules } from './rules.ts';
-import { normalizeState, redact } from './state.ts';
+import { normalizeState, redact, SearchStateSchema } from './state.ts';
+import { toState } from './interpret.ts';
 import type { CatalogMeta } from '../../shared/types.ts';
 
 const meta: CatalogMeta = {
@@ -16,6 +17,7 @@ const meta: CatalogMeta = {
   durationRange: [3, 15],
   dateRange: ['2026-11-26', '2027-11-01'],
   kibanaUrl: null,
+  today: '2026-11-25',
 };
 const TODAY = '2026-11-25';
 const parse = (msg: string, current = {}) => parseRules(msg, current, meta, TODAY);
@@ -69,5 +71,43 @@ describe('redact', () => {
     expect(redact('mail me at anna.b@example.com or +39 333 123 4567, 19-24 October, max 1500')).toBe(
       'mail me at [email] or [phone], 19-24 October, max 1500',
     );
+  });
+});
+
+describe('review fixes', () => {
+  it('"us" is a pronoun, not the United States', () => {
+    expect(parse('there are 3 of us, something in Japan')).toMatchObject({ minSeats: 3, destinations: ['Japan'] });
+    expect(parse('show us relaxing trips in Asia')).toMatchObject({ continents: ['Asia'] });
+  });
+
+  it('typo tolerance does not turn everyday words into countries', () => {
+    expect(parse('hungry for street food in Asia').destinations).toBeUndefined();
+  });
+
+  it('reads thousands separators', () => {
+    expect(parse('budget under 1,500 euros').budgetMax).toBe(1500);
+    expect(parse('max 1.5k').budgetMax).toBe(1500);
+  });
+
+  it('a day range already past this month means next year', () => {
+    expect(parse('only 19-24 november')).toMatchObject({ departFrom: '2027-11-19', returnBy: '2027-11-24' });
+  });
+
+  it('redaction keeps dates and price ranges', () => {
+    expect(redact('free 2026-12-19 to 2026-12-28, budget 1500-2500, leaving 19.12.2026, 1200 1800 EUR')).toBe(
+      'free 2026-12-19 to 2026-12-28, budget 1500-2500, leaving 19.12.2026, 1200 1800 EUR',
+    );
+    expect(redact('call 333 123 4567 or 0039 333 1234567')).toBe('call [phone] or [phone]');
+  });
+
+  it('impossible calendar dates are rejected at the boundary', () => {
+    expect(SearchStateSchema.safeParse({ departTo: '2027-02-29' }).success).toBe(false);
+    expect(SearchStateSchema.safeParse({ departTo: '2028-02-29' }).success).toBe(true);
+  });
+
+  it('an invalid LLM field is dropped alone, the rest of the interpretation is kept', () => {
+    const { state, dropped } = toState({ continents: ['Asia'], departTo: '2027-02-29', durationMin: 7.4, text: '', budgetMax: 0 });
+    expect(state).toEqual({ continents: ['Asia'], durationMin: 7 });
+    expect(dropped).toEqual(['departTo']);
   });
 });

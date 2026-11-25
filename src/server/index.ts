@@ -1,6 +1,7 @@
 import { serve } from '@hono/node-server';
 import { serveStatic } from '@hono/node-server/serve-static';
 import { Hono } from 'hono';
+import { bodyLimit } from 'hono/body-limit';
 import { z } from 'zod';
 import { config } from './config.ts';
 import { waitForEs } from './es.ts';
@@ -20,6 +21,8 @@ app.onError((err, c) => {
 });
 
 app.get('/api/health', (c) => c.json({ ok: true }));
+// Trips are the biggest legitimate bodies (~10 KB); anything far larger is a mistake or abuse.
+app.use('/api/*', bodyLimit({ maxSize: 64 * 1024, onError: (c) => c.json({ error: 'request body too large' }, 413) }));
 app.route('/api', searchRoutes);
 app.route('/api/admin', adminRoutes);
 app.all('/api/*', (c) => c.json({ error: 'not found' }, 404));

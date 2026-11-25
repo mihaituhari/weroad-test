@@ -4,7 +4,7 @@ An assistant that lives on WeRoad's search page. It starts from the visitor's cl
 
 - **Search page** `/` — classic search + filters, the assistant panel, "Try an example" scripts, per-trip and per-search feedback.
 - **Backoffice** `/admin` — search log with filters and quality stats, CRUD for trips and FAQs, link to Kibana.
-- **Why it is built this way:** [`docs/DECISIONS.md`](docs/DECISIONS.md). **How it was built with AI agents:** [`docs/AI_WORKFLOW.md`](docs/AI_WORKFLOW.md). **Context for coding agents:** [`AGENTS.md`](AGENTS.md).
+- **How the search works (with diagrams):** [`docs/SEARCH.md`](docs/SEARCH.md). **Why it is built this way:** [`docs/DECISIONS.md`](docs/DECISIONS.md). **How it was built with AI agents:** [`docs/AI_WORKFLOW.md`](docs/AI_WORKFLOW.md). **Context for coding agents:** [`AGENTS.md`](AGENTS.md).
 
 ## Run it
 
@@ -36,6 +36,8 @@ npm run eval -- --save          # offline eval with Claude, saved to eval/result
 ```
 
 ## Configuration
+
+`ANTHROPIC_MODEL`, `LLM_TIMEOUT_MS` and `DAILY_LLM_BUDGET_USD` are only defaults: they can be changed at runtime in **/admin → Settings** (stored in Elasticsearch, applied to the next search). The model can also be set to *None* to run on the rule-based parser only.
 
 | Variable | Default | |
 |---|---|---|

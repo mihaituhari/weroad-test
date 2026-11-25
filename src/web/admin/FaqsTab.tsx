@@ -1,7 +1,7 @@
 import { useState, type FormEvent } from 'react';
 import { api } from '../api.ts';
 import type { CatalogMeta, Faq, Trip } from '../../shared/types.ts';
-import { Alert, Field, useAction, useLoad, type TabProps } from './ui.tsx';
+import { Alert, Field, RawDocument, rowClick, useAction, useLoad, type TabProps } from './ui.tsx';
 
 const GENERAL = '__general';
 const BLANK: Omit<Faq, 'id'> = { scope: 'general', destination: null, title: '', body: '', url: null };
@@ -23,19 +23,27 @@ export function FaqsTab({ meta, selected, select }: TabProps) {
   }
 
   const shown = (faqs.data ?? []).filter((f) => !filter || (filter === GENERAL ? f.scope === 'general' : f.destination === filter));
+  // The filter only offers destinations that have FAQs (the editor still lists every catalog destination).
+  const counts = Map.groupBy(faqs.data ?? [], (f) => (f.scope === 'general' ? GENERAL : f.destination));
+  const destinations = [...counts.keys()].filter((d): d is string => !!d && d !== GENERAL).sort();
 
   return (
     <>
       <div className="adm-filters">
         <Field label="Destination">
           <select value={filter} onChange={(e) => setFilter(e.target.value)}>
-            <option value="">All</option>
-            <option value={GENERAL}>General</option>
-            {meta.destinations.map((d) => (
-              <option key={d.name}>{d.name}</option>
+            <option value="">All ({faqs.data?.length ?? 0})</option>
+            <option value={GENERAL}>General ({counts.get(GENERAL)?.length ?? 0})</option>
+            {destinations.map((d) => (
+              <option key={d} value={d}>
+                {d} ({counts.get(d)!.length})
+              </option>
             ))}
           </select>
         </Field>
+        <button type="button" className="adm-btn" onClick={() => setFilter('')} disabled={!filter}>
+          Reset filters
+        </button>
         <button className="adm-btn adm-btn--primary" onClick={() => select('new')}>
           New FAQ
         </button>
@@ -56,13 +64,17 @@ export function FaqsTab({ meta, selected, select }: TabProps) {
             {shown.map((f) => {
               const linked = trips.data?.filter((t) => t.destination === f.destination).length;
               return (
-                <tr key={f.id} className="adm-row" onClick={() => select(f.id)}>
+                <tr key={f.id} className="adm-row" onClick={rowClick(() => select(f.id))}>
                   <td className="adm-num">{f.id}</td>
                   <td>
                     <span className="adm-tag">{f.scope}</span>
                   </td>
                   <td>{f.destination ?? '—'}</td>
-                  <td>{f.title}</td>
+                  <td>
+                    <a className="adm-rowlink" href={`#faqs/${f.id}`}>
+                      {f.title}
+                    </a>
+                  </td>
                   <td className="adm-num">
                     {f.scope === 'general' ? (
                       'all'
@@ -94,6 +106,9 @@ function FaqEditor({ faq, meta, trips, close }: { faq: Faq | null; meta: Catalog
   const action = useAction(() => close(true));
   const set = (patch: Partial<Faq>) => setDraft((d) => ({ ...d, ...patch }));
   const linked = draft.scope === 'destination' ? trips.filter((t) => t.destination === draft.destination) : [];
+  // Keep the FAQ's own destination selectable even when no trip has it any more, so it can still be saved as is.
+  const destinations = meta.destinations.map((d) => d.name);
+  if (draft.destination && !destinations.includes(draft.destination)) destinations.unshift(draft.destination);
 
   const save = (e: FormEvent) => {
     e.preventDefault();
@@ -107,6 +122,7 @@ function FaqEditor({ faq, meta, trips, close }: { faq: Faq | null; meta: Catalog
     <form className="adm-editor" onSubmit={save}>
       <div className="adm-head">
         <h2>{faq ? `FAQ #${faq.id}` : 'New FAQ'}</h2>
+        {faq && <RawDocument load={() => api.admin.rawFaq(faq.id)} title={`FAQ #${faq.id}`} note="as stored in Elasticsearch (embedding shortened)" />}
       </div>
 
       <section className="adm-card">
@@ -134,8 +150,8 @@ function FaqEditor({ faq, meta, trips, close }: { faq: Faq | null; meta: Catalog
               onChange={(e) => set({ destination: e.target.value || null })}
             >
               <option value="">{draft.scope === 'general' ? 'all trips' : 'choose…'}</option>
-              {meta.destinations.map((d) => (
-                <option key={d.name}>{d.name}</option>
+              {destinations.map((d) => (
+                <option key={d}>{d}</option>
               ))}
             </select>
           </Field>

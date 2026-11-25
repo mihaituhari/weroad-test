@@ -3,10 +3,10 @@
     "label": "claude-sonnet-5-5",
     "date": "2026-11-25",
     "cases": {
-      "passed": 32,
-      "total": 33
+      "passed": 36,
+      "total": 36
     },
-    "checks": "158/159 (99%)",
+    "checks": "172/172 (100%)",
     "byTag": {
       "age": "4/4 (100%)",
       "budget": "37/37 (100%)",
@@ -19,49 +19,50 @@
       "faq": "17/17 (100%)",
       "filters": "18/18 (100%)",
       "group": "10/10 (100%)",
-      "honesty": "24/25 (96%)",
+      "honesty": "38/38 (100%)",
       "keyword": "3/3 (100%)",
       "mood": "7/7 (100%)",
       "multi-turn": "29/29 (100%)",
-      "must-have": "13/13 (100%)",
+      "must-have": "17/17 (100%)",
       "physical": "9/9 (100%)",
+      "review": "13/13 (100%)",
       "semantic": "3/3 (100%)",
       "synonym": "7/7 (100%)",
       "travel-type": "5/5 (100%)",
       "typo": "4/4 (100%)",
-      "unknown": "8/9 (89%)"
+      "unknown": "9/9 (100%)"
     },
     "stateFieldAccuracy": "47/47 (100%)",
-    "top3HitRate": "20/21 (95%)",
+    "top3HitRate": "22/22 (100%)",
     "soldOutLeaks": 0,
     "deadEnds": 0,
     "errors": 0,
     "interpreterFallbacks": 0,
     "latencyMs": {
       "assistantTurn": {
-        "p50": 2501,
-        "p95": 3598
+        "p50": 2492,
+        "p95": 3266
       },
       "llmCall": {
-        "p50": 2443,
-        "p95": 3516
+        "p50": 2430,
+        "p95": 3231
       },
       "classicSearch": {
-        "p50": 16,
-        "p95": 39
+        "p50": 11,
+        "p95": 38
       }
     },
     "cost": {
-      "totalUsd": 0.18245800000000006,
-      "perAssistantTurnUsd": 0.004931297297297299,
+      "totalUsd": 0.17376200000000003,
+      "perAssistantTurnUsd": 0.004696270270270271,
       "tokens": {
-        "input": 35433,
-        "output": 9757
+        "input": 31999,
+        "output": 9711
       }
     },
     "turns": {
       "assistant": 37,
-      "classic": 8
+      "classic": 11
     }
   },
   "cases": [
@@ -165,16 +166,16 @@
           ],
           "answerFaqs": [],
           "latencyMs": {
-            "total": 2423,
-            "llm": 2332,
-            "search": 18
+            "total": 2424,
+            "llm": 2325,
+            "search": 24
           },
           "tokens": {
-            "input": 4255,
+            "input": 835,
             "output": 236,
-            "cacheRead": 0
+            "cacheRead": 3420
           },
-          "costUsd": 0.01258,
+          "costUsd": 0.004372,
           "error": null
         }
       ]
@@ -270,8 +271,8 @@
           ],
           "answerFaqs": [],
           "latencyMs": {
-            "total": 2564,
-            "llm": 2546,
+            "total": 2629,
+            "llm": 2609,
             "search": 12
           },
           "tokens": {
@@ -306,7 +307,7 @@
         {
           "name": "top3",
           "pass": true,
-          "detail": "top3 47,3,5"
+          "detail": "top3 47,3,12"
         },
         {
           "name": "minExact",
@@ -335,10 +336,11 @@
             "budgetMax": 1000,
             "sort": "price"
           },
-          "reply": "Done: trips in Africa under €1000 per person, sorted cheapest first.",
+          "reply": "Done: trips in Africa under €1000 per person, sorted by cheapest first.",
           "unmatched": [],
           "relaxed": [
-            "continents"
+            "continents",
+            "budgetMax"
           ],
           "confidence": {
             "score": 1,
@@ -362,42 +364,42 @@
               "confidence": 1
             },
             {
-              "tripId": 5,
-              "title": "Geneva & Annecy Weekend: Chocolatiers and Pearls of the Alps",
-              "exact": false,
-              "confidence": 0.2
-            },
-            {
-              "tripId": 31,
-              "title": "Zagreb Weekend: the vibrant city and the Plitvice Lakes",
-              "exact": false,
-              "confidence": 0.2
-            },
-            {
               "tripId": 12,
               "title": "Athens Weekend: Acropolis, Cape Sounion and taverna nights",
               "exact": false,
               "confidence": 0.2
             },
             {
-              "tripId": 46,
-              "title": "Warsaw Weekend: Old Town, Wilanów Palace and vodka tasting",
+              "tripId": 14,
+              "title": "Strasbourg and Colmar Express: the magic of Christmas markets, fine wines, and relaxation",
               "exact": false,
               "confidence": 0.2
+            },
+            {
+              "tripId": 6,
+              "title": "Egypt 360°: Pyramids of Giza, Night Train to Aswan & the Red Sea",
+              "exact": false,
+              "confidence": 0.7
+            },
+            {
+              "tripId": 35,
+              "title": "Cape Verde Beach Life: Sal Island",
+              "exact": false,
+              "confidence": 0.7
             }
           ],
           "answerFaqs": [],
           "latencyMs": {
-            "total": 2652,
-            "llm": 2625,
-            "search": 20
+            "total": 2806,
+            "llm": 2783,
+            "search": 15
           },
           "tokens": {
             "input": 777,
-            "output": 249,
+            "output": 250,
             "cacheRead": 3420
           },
-          "costUsd": 0.004386,
+          "costUsd": 0.004396,
           "error": null
         }
       ]
@@ -499,9 +501,9 @@
           ],
           "answerFaqs": [],
           "latencyMs": {
-            "total": 1921,
-            "llm": 1873,
-            "search": 40
+            "total": 1755,
+            "llm": 1729,
+            "search": 20
           },
           "tokens": {
             "input": 535,
@@ -523,7 +525,7 @@
         {
           "name": "top3",
           "pass": true,
-          "detail": "top3 41,9,11"
+          "detail": "top3 41,11,9"
         },
         {
           "name": "no-sold-out",
@@ -541,23 +543,20 @@
           "message": "where can I see the aurora borealis?",
           "interpreter": "llm",
           "state": {
-            "text": "aurora borealis, northern lights",
+            "text": "aurora borealis",
             "travelTypes": [
               "Northern Lights"
-            ],
-            "moods": {
-              "nature": 1
-            }
+            ]
           },
-          "reply": "Done: searching Northern Lights trips.",
+          "reply": "Done: looking for Northern Lights trips.",
           "unmatched": [],
           "relaxed": [],
           "confidence": {
-            "score": 0.9729999999999999,
+            "score": 0.8156666666666667,
             "level": "high",
             "explanation": "3 trips match everything you asked for.",
             "understanding": 1,
-            "matchQuality": 0.9729999999999999
+            "matchQuality": 0.8156666666666667
           },
           "exactCount": 3,
           "results": [
@@ -565,33 +564,33 @@
               "tripId": 41,
               "title": "Canadian Rockies: Northern Lights Winter Quest",
               "exact": true,
-              "confidence": 1
-            },
-            {
-              "tripId": 9,
-              "title": "Iceland: Hunting the Northern Lights",
-              "exact": true,
-              "confidence": 0.961
+              "confidence": 0.97
             },
             {
               "tripId": 11,
               "title": "Sweden: Northern Lights and Lapland",
               "exact": true,
-              "confidence": 0.958
+              "confidence": 0.748
+            },
+            {
+              "tripId": 9,
+              "title": "Iceland: Hunting the Northern Lights",
+              "exact": true,
+              "confidence": 0.729
             }
           ],
           "answerFaqs": [],
           "latencyMs": {
-            "total": 3717,
-            "llm": 3623,
-            "search": 84
+            "total": 2639,
+            "llm": 2616,
+            "search": 18
           },
           "tokens": {
             "input": 921,
-            "output": 252,
+            "output": 248,
             "cacheRead": 3420
           },
-          "costUsd": 0.004704,
+          "costUsd": 0.004664,
           "error": null
         }
       ]
@@ -690,9 +689,9 @@
           ],
           "answerFaqs": [],
           "latencyMs": {
-            "total": 16,
+            "total": 12,
             "llm": 0,
-            "search": 13
+            "search": 11
           },
           "tokens": null,
           "costUsd": 0,
@@ -775,9 +774,9 @@
           ],
           "answerFaqs": [],
           "latencyMs": {
-            "total": 2352,
-            "llm": 2331,
-            "search": 14
+            "total": 2406,
+            "llm": 2388,
+            "search": 13
           },
           "tokens": {
             "input": 993,
@@ -799,7 +798,7 @@
         {
           "name": "top3",
           "pass": true,
-          "detail": "top3 21,42,14"
+          "detail": "top3 42,14,21"
         },
         {
           "name": "no-sold-out",
@@ -817,73 +816,51 @@
           "message": "Christmas markets",
           "interpreter": "llm",
           "state": {
-            "text": "Christmas markets",
-            "departFrom": "2026-12-01",
-            "departTo": "2026-12-31"
+            "text": "Christmas markets"
           },
-          "reply": "Done: searching for Christmas markets, departing in December.",
+          "reply": "Done: searching for Christmas markets trips.",
           "unmatched": [],
-          "relaxed": [
-            "departFrom"
-          ],
+          "relaxed": [],
           "confidence": {
-            "score": 0.6440000000000001,
+            "score": 0.7274666666666668,
             "level": "medium",
-            "explanation": "1 trip matches everything you asked for. Parts of your request were ambiguous: check the filters we applied.",
+            "explanation": "3 trips match everything you asked for. Parts of your request were ambiguous: check the filters we applied.",
             "understanding": 0.8,
-            "matchQuality": 0.805
+            "matchQuality": 0.9093333333333334
           },
-          "exactCount": 1,
+          "exactCount": 3,
           "results": [
+            {
+              "tripId": 42,
+              "title": "Balkan Christmas Markets: Ljubljana, Lake Bled & Zagreb",
+              "exact": true,
+              "confidence": 0.987
+            },
+            {
+              "tripId": 14,
+              "title": "Strasbourg and Colmar Express: the magic of Christmas markets, fine wines, and relaxation",
+              "exact": true,
+              "confidence": 0.936
+            },
             {
               "tripId": 21,
               "title": "Copenhagen Weekend: Fairytale Charm, Tivoli Gardens & Danish Hygge",
               "exact": true,
               "confidence": 0.805
-            },
-            {
-              "tripId": 42,
-              "title": "Balkan Christmas Markets: Ljubljana, Lake Bled & Zagreb",
-              "exact": false,
-              "confidence": 0.592
-            },
-            {
-              "tripId": 14,
-              "title": "Strasbourg and Colmar Express: the magic of Christmas markets, fine wines, and relaxation",
-              "exact": false,
-              "confidence": 0.421
-            },
-            {
-              "tripId": 5,
-              "title": "Geneva & Annecy Weekend: Chocolatiers and Pearls of the Alps",
-              "exact": false,
-              "confidence": 0.284
-            },
-            {
-              "tripId": 11,
-              "title": "Sweden: Northern Lights and Lapland",
-              "exact": false,
-              "confidence": 0.276
-            },
-            {
-              "tripId": 46,
-              "title": "Warsaw Weekend: Old Town, Wilanów Palace and vodka tasting",
-              "exact": false,
-              "confidence": 0.2
             }
           ],
           "answerFaqs": [],
           "latencyMs": {
-            "total": 3395,
-            "llm": 3304,
-            "search": 77
+            "total": 2521,
+            "llm": 2491,
+            "search": 25
           },
           "tokens": {
             "input": 389,
-            "output": 257,
+            "output": 242,
             "cacheRead": 3420
           },
-          "costUsd": 0.00369,
+          "costUsd": 0.00354,
           "error": null
         }
       ]
@@ -988,9 +965,9 @@
           ],
           "answerFaqs": [],
           "latencyMs": {
-            "total": 2498,
-            "llm": 2443,
-            "search": 46
+            "total": 3266,
+            "llm": 3231,
+            "search": 30
           },
           "tokens": {
             "input": 913,
@@ -1056,7 +1033,7 @@
             ],
             "budgetMax": 1500
           },
-          "reply": "Done: trips in Asia, up to 1500 euros per person.",
+          "reply": "Done: trips in Asia with a budget up to €1500 per person.",
           "unmatched": [],
           "relaxed": [],
           "confidence": {
@@ -1107,16 +1084,16 @@
           ],
           "answerFaqs": [],
           "latencyMs": {
-            "total": 2348,
-            "llm": 2328,
-            "search": 13
+            "total": 2606,
+            "llm": 2583,
+            "search": 15
           },
           "tokens": {
             "input": 882,
-            "output": 246,
+            "output": 247,
             "cacheRead": 3420
           },
-          "costUsd": 0.004566,
+          "costUsd": 0.004576,
           "error": null
         }
       ]
@@ -1162,7 +1139,7 @@
           "state": {
             "budgetMax": 100
           },
-          "reply": "Done: budget set to a maximum of 100 euros per person. Nothing matches all of that right now, so I am showing the closest options.",
+          "reply": "Done: budget capped at 100 euros per person, though our trips usually start well above that. Nothing matches all of that right now, so I am showing the closest options.",
           "unmatched": [],
           "relaxed": [
             "budgetMax"
@@ -1177,20 +1154,20 @@
           "exactCount": 0,
           "results": [
             {
-              "tripId": 6,
-              "title": "Egypt 360°: Pyramids of Giza, Night Train to Aswan & the Red Sea",
+              "tripId": 47,
+              "title": "Tunis Weekend: between history, culture, and flavours of Africa",
               "exact": false,
               "confidence": 0.1
             },
             {
-              "tripId": 7,
-              "title": "Vietnam 360°: from Hanoi to Ho Chi Minh City",
+              "tripId": 5,
+              "title": "Geneva & Annecy Weekend: Chocolatiers and Pearls of the Alps",
               "exact": false,
               "confidence": 0.1
             },
             {
-              "tripId": 8,
-              "title": "Kyrgyzstan 360°: Bishkek, Yurt Nights & Eagle Hunters of Central Asia",
+              "tripId": 31,
+              "title": "Zagreb Weekend: the vibrant city and the Plitvice Lakes",
               "exact": false,
               "confidence": 0.1
             },
@@ -1201,30 +1178,30 @@
               "confidence": 0.1
             },
             {
-              "tripId": 14,
-              "title": "Strasbourg and Colmar Express: the magic of Christmas markets, fine wines, and relaxation",
+              "tripId": 46,
+              "title": "Warsaw Weekend: Old Town, Wilanów Palace and vodka tasting",
               "exact": false,
               "confidence": 0.1
             },
             {
-              "tripId": 21,
-              "title": "Copenhagen Weekend: Fairytale Charm, Tivoli Gardens & Danish Hygge",
+              "tripId": 49,
+              "title": "Sofia Weekend: Balkan Bites & Hidden Heritage",
               "exact": false,
               "confidence": 0.1
             }
           ],
           "answerFaqs": [],
           "latencyMs": {
-            "total": 2431,
-            "llm": 2410,
-            "search": 14
+            "total": 2409,
+            "llm": 2394,
+            "search": 8
           },
           "tokens": {
             "input": 1070,
-            "output": 240,
+            "output": 247,
             "cacheRead": 3420
           },
-          "costUsd": 0.004882,
+          "costUsd": 0.004952,
           "error": null
         }
       ]
@@ -1340,9 +1317,9 @@
           ],
           "answerFaqs": [],
           "latencyMs": {
-            "total": 2645,
-            "llm": 2611,
-            "search": 26
+            "total": 2722,
+            "llm": 2692,
+            "search": 23
           },
           "tokens": {
             "input": 765,
@@ -1423,9 +1400,9 @@
           ],
           "answerFaqs": [],
           "latencyMs": {
-            "total": 2348,
-            "llm": 2322,
-            "search": 18
+            "total": 2208,
+            "llm": 2186,
+            "search": 13
           },
           "tokens": {
             "input": 771,
@@ -1513,7 +1490,7 @@
           "latencyMs": {
             "total": 38,
             "llm": 0,
-            "search": 34
+            "search": 31
           },
           "tokens": null,
           "costUsd": 0,
@@ -1530,14 +1507,14 @@
           "reply": "Done: available 19-24 October 2027, keeping the weekend city break. Nothing matches all of that right now, so I am showing the closest options.",
           "unmatched": [],
           "relaxed": [
-            "departFrom"
+            "returnBy"
           ],
           "confidence": {
-            "score": 0.2586666666666667,
+            "score": 0.31333333333333335,
             "level": "low",
-            "explanation": "No trip matches everything you asked for, so these are the closest options. Parts of your request were ambiguous: check the filters we applied.",
-            "understanding": 0.8,
-            "matchQuality": 0.32333333333333336
+            "explanation": "No trip matches everything you asked for, so these are the closest options.",
+            "understanding": 1,
+            "matchQuality": 0.31333333333333335
           },
           "exactCount": 0,
           "results": [
@@ -1545,19 +1522,19 @@
               "tripId": 43,
               "title": "Uzbekistan 360° Summer: Tashkent, Samarkand & a Yurt Night on the Silk Road",
               "exact": false,
-              "confidence": 0.524
+              "confidence": 0.557
             },
             {
               "tripId": 34,
               "title": "Guatemala and Belize: Volcanoes, Ruins, and Caribbean Vibes",
               "exact": false,
-              "confidence": 0.288
+              "confidence": 0.256
             },
             {
               "tripId": 26,
               "title": "South Africa 360°: Cape Town, Table Mountain at Sunset & a Big Five Safari",
               "exact": false,
-              "confidence": 0.158
+              "confidence": 0.127
             },
             {
               "tripId": 48,
@@ -1580,16 +1557,16 @@
           ],
           "answerFaqs": [],
           "latencyMs": {
-            "total": 3598,
-            "llm": 3516,
-            "search": 72
+            "total": 3359,
+            "llm": 3316,
+            "search": 36
           },
           "tokens": {
             "input": 1084,
-            "output": 394,
+            "output": 408,
             "cacheRead": 3420
           },
-          "costUsd": 0.00645,
+          "costUsd": 0.00659,
           "error": null
         }
       ]
@@ -1697,9 +1674,9 @@
           ],
           "answerFaqs": [],
           "latencyMs": {
-            "total": 2887,
-            "llm": 2817,
-            "search": 62
+            "total": 2597,
+            "llm": 2563,
+            "search": 29
           },
           "tokens": {
             "input": 375,
@@ -1795,9 +1772,9 @@
           ],
           "answerFaqs": [],
           "latencyMs": {
-            "total": 2398,
-            "llm": 2351,
-            "search": 32
+            "total": 2944,
+            "llm": 2898,
+            "search": 39
           },
           "tokens": {
             "input": 723,
@@ -1820,7 +1797,7 @@
         {
           "name": "state.moods",
           "pass": true,
-          "detail": "got {\"party\":1,\"relax\":0.6}"
+          "detail": "got {\"party\":1,\"relax\":0.7}"
         },
         {
           "name": "state.ageBands",
@@ -1843,7 +1820,7 @@
           "message": "I want to party and chill on beaches, I am 23",
           "interpreter": "llm",
           "state": {
-            "text": "party and beaches",
+            "text": "party and relaxing on beaches",
             "travelTypes": [
               "Beach Life"
             ],
@@ -1852,18 +1829,18 @@
             ],
             "moods": {
               "party": 1,
-              "relax": 0.6
+              "relax": 0.7
             }
           },
-          "reply": "Done: party and relaxing beach trips, for the 18-25 age group.",
+          "reply": "Done: party and beach vibe, age group 18-25.",
           "unmatched": [],
           "relaxed": [],
           "confidence": {
-            "score": 0.6082666666666667,
-            "level": "medium",
-            "explanation": "5 trips match everything you asked for. Parts of your request were ambiguous: check the filters we applied.",
-            "understanding": 0.8,
-            "matchQuality": 0.7603333333333334
+            "score": 0.8186666666666667,
+            "level": "high",
+            "explanation": "5 trips match everything you asked for.",
+            "understanding": 1,
+            "matchQuality": 0.8186666666666667
           },
           "exactCount": 5,
           "results": [
@@ -1871,45 +1848,45 @@
               "tripId": 35,
               "title": "Cape Verde Beach Life: Sal Island",
               "exact": true,
-              "confidence": 0.783
+              "confidence": 0.854
             },
             {
               "tripId": 16,
               "title": "Maldives Beach Life: Dolphins, Turtles & Sunset Sandbanks in Vaavu Atoll",
               "exact": true,
-              "confidence": 0.764
+              "confidence": 0.843
             },
             {
               "tripId": 50,
               "title": "Dominican Republic Expedition: an adventure between nature and Caribbean beaches",
               "exact": true,
-              "confidence": 0.734
+              "confidence": 0.759
             },
             {
               "tripId": 10,
               "title": "Albania 360°: Tirana, UNESCO Sites & Adventure in Nature",
               "exact": true,
-              "confidence": 0.666
+              "confidence": 0.667
             },
             {
               "tripId": 29,
               "title": "Philippines 360°: Bohol's Tarsiers, Palawan & a Night Under the Stars",
               "exact": true,
-              "confidence": 0.576
+              "confidence": 0.652
             }
           ],
           "answerFaqs": [],
           "latencyMs": {
-            "total": 2568,
-            "llm": 2536,
-            "search": 22
+            "total": 2451,
+            "llm": 2426,
+            "search": 19
           },
           "tokens": {
             "input": 1346,
-            "output": 262,
+            "output": 260,
             "cacheRead": 3420
           },
-          "costUsd": 0.005654,
+          "costUsd": 0.005634,
           "error": null
         }
       ]
@@ -1954,7 +1931,7 @@
               "nature": 0.4
             }
           },
-          "reply": "Done: looking for quiet, relaxing trips with an easy pace.",
+          "reply": "Done: looking for quiet, relaxing trips with an easy physical level.",
           "unmatched": [],
           "relaxed": [
             "travelTypes"
@@ -2007,16 +1984,16 @@
           ],
           "answerFaqs": [],
           "latencyMs": {
-            "total": 2743,
-            "llm": 2699,
-            "search": 36
+            "total": 2492,
+            "llm": 2464,
+            "search": 22
           },
           "tokens": {
             "input": 846,
-            "output": 272,
+            "output": 273,
             "cacheRead": 3420
           },
-          "costUsd": 0.004754,
+          "costUsd": 0.004764,
           "error": null
         }
       ]
@@ -2062,21 +2039,21 @@
               "HIGH"
             ],
             "moods": {
-              "nature": 0.8
+              "nature": 1
             }
           },
-          "reply": "Done: challenging trekking trips with a high physical difficulty level.",
+          "reply": "Done: trekking trips with a challenging physical level.",
           "unmatched": [],
           "relaxed": [
             "physical",
             "travelTypes"
           ],
           "confidence": {
-            "score": 0.858,
-            "level": "high",
+            "score": 0.682,
+            "level": "medium",
             "explanation": "1 trip matches everything you asked for.",
             "understanding": 1,
-            "matchQuality": 0.858
+            "matchQuality": 0.682
           },
           "exactCount": 1,
           "results": [
@@ -2084,7 +2061,7 @@
               "tripId": 23,
               "title": "Patagonia: Hiking Torres del Paine to Ushuaia at the End of the World",
               "exact": true,
-              "confidence": 0.858
+              "confidence": 0.682
             },
             {
               "tripId": 25,
@@ -2119,16 +2096,16 @@
           ],
           "answerFaqs": [],
           "latencyMs": {
-            "total": 2133,
-            "llm": 2095,
-            "search": 32
+            "total": 1884,
+            "llm": 1859,
+            "search": 19
           },
           "tokens": {
             "input": 757,
-            "output": 264,
+            "output": 257,
             "cacheRead": 3420
           },
-          "costUsd": 0.004496,
+          "costUsd": 0.004426,
           "error": null
         }
       ]
@@ -2230,9 +2207,9 @@
           ],
           "answerFaqs": [],
           "latencyMs": {
-            "total": 1778,
-            "llm": 1761,
-            "search": 11
+            "total": 1657,
+            "llm": 1641,
+            "search": 10
           },
           "tokens": {
             "input": 601,
@@ -2353,9 +2330,9 @@
           ],
           "answerFaqs": [],
           "latencyMs": {
-            "total": 2389,
-            "llm": 2369,
-            "search": 12
+            "total": 2331,
+            "llm": 2311,
+            "search": 13
           },
           "tokens": {
             "input": 1350,
@@ -2469,9 +2446,9 @@
           ],
           "answerFaqs": [],
           "latencyMs": {
-            "total": 2270,
-            "llm": 2249,
-            "search": 14
+            "total": 2263,
+            "llm": 2243,
+            "search": 13
           },
           "tokens": {
             "input": 900,
@@ -2489,17 +2466,17 @@
         "honesty",
         "unknown"
       ],
-      "pass": false,
+      "pass": true,
       "checks": [
         {
           "name": "top3",
-          "pass": false,
-          "detail": "top3 41,11,44"
+          "pass": true,
+          "detail": "top3 26,23,11"
         },
         {
           "name": "maxConfidence",
           "pass": true,
-          "detail": "conf 0.47"
+          "detail": "conf 0.27"
         },
         {
           "name": "unmatched",
@@ -2522,86 +2499,71 @@
           "message": "Antarctica to see penguins",
           "interpreter": "llm",
           "state": {
-            "text": "penguins, polar wildlife",
-            "moods": {
-              "nature": 1
-            }
+            "text": "penguins"
           },
-          "reply": "Antarctica isn't a destination I can filter on, so I searched for penguins and polar wildlife in general.",
+          "reply": "Antarctica isn't a destination I can filter on, so I searched for penguins instead.",
           "unmatched": [
             "Antarctica"
           ],
           "relaxed": [],
           "confidence": {
-            "score": 0.4680533333333334,
+            "score": 0.27412000000000003,
             "level": "low",
-            "explanation": "8 trips match everything you asked for. We can't search for: Antarctica. Parts of your request were ambiguous: check the filters we applied.",
-            "understanding": 0.6400000000000001,
-            "matchQuality": 0.7313333333333333
+            "explanation": "1 trip matches everything you asked for. We can't search for: Antarctica. Parts of your request were ambiguous: check the filters we applied.",
+            "understanding": 0.44000000000000006,
+            "matchQuality": 0.623
           },
-          "exactCount": 8,
+          "exactCount": 1,
           "results": [
-            {
-              "tripId": 41,
-              "title": "Canadian Rockies: Northern Lights Winter Quest",
-              "exact": true,
-              "confidence": 0.785
-            },
-            {
-              "tripId": 11,
-              "title": "Sweden: Northern Lights and Lapland",
-              "exact": true,
-              "confidence": 0.71
-            },
-            {
-              "tripId": 44,
-              "title": "Tanzania Backpack: a camping safari trip to the heart of the savannah",
-              "exact": true,
-              "confidence": 0.699
-            },
-            {
-              "tripId": 13,
-              "title": "Costa Rica 360°: between jungle, beaches and volcanoes",
-              "exact": true,
-              "confidence": 0.697
-            },
-            {
-              "tripId": 23,
-              "title": "Patagonia: Hiking Torres del Paine to Ushuaia at the End of the World",
-              "exact": true,
-              "confidence": 0.68
-            },
             {
               "tripId": 26,
               "title": "South Africa 360°: Cape Town, Table Mountain at Sunset & a Big Five Safari",
               "exact": true,
-              "confidence": 0.671
+              "confidence": 0.623
             },
             {
-              "tripId": 39,
-              "title": "Ecuador 360°: the Amazon, the Andes & Snorkeling the Galapagos Islands",
-              "exact": true,
-              "confidence": 0.668
+              "tripId": 23,
+              "title": "Patagonia: Hiking Torres del Paine to Ushuaia at the End of the World",
+              "exact": false,
+              "confidence": 0.545
             },
             {
-              "tripId": 24,
-              "title": "Madagascar 360°: Beach, jungle, baobabs, lemurs and chameleons",
-              "exact": true,
-              "confidence": 0.606
+              "tripId": 11,
+              "title": "Sweden: Northern Lights and Lapland",
+              "exact": false,
+              "confidence": 0.206
+            },
+            {
+              "tripId": 16,
+              "title": "Maldives Beach Life: Dolphins, Turtles & Sunset Sandbanks in Vaavu Atoll",
+              "exact": false,
+              "confidence": 0.205
+            },
+            {
+              "tripId": 41,
+              "title": "Canadian Rockies: Northern Lights Winter Quest",
+              "exact": false,
+              "confidence": 0.203
+            },
+            {
+              "tripId": 21,
+              "title": "Copenhagen Weekend: Fairytale Charm, Tivoli Gardens & Danish Hygge",
+              "exact": false,
+              "confidence": 0.2
             }
           ],
           "answerFaqs": [],
           "latencyMs": {
-            "total": 2146,
-            "llm": 1982,
-            "search": 148
+            "total": 1811,
+            "llm": 1780,
+            "search": 23
           },
           "tokens": {
             "input": 1010,
-            "output": 272,
+            "output": 257,
             "cacheRead": 3420
           },
-          "costUsd": 0.005082,
+          "costUsd": 0.004932,
           "error": null
         }
       ]
@@ -2699,9 +2661,9 @@
           ],
           "answerFaqs": [],
           "latencyMs": {
-            "total": 2565,
-            "llm": 2541,
-            "search": 15
+            "total": 2787,
+            "llm": 2767,
+            "search": 12
           },
           "tokens": {
             "input": 1139,
@@ -2787,9 +2749,9 @@
           ],
           "answerFaqs": [],
           "latencyMs": {
-            "total": 36,
+            "total": 17,
             "llm": 0,
-            "search": 34
+            "search": 16
           },
           "tokens": null,
           "costUsd": 0,
@@ -2855,9 +2817,9 @@
           ],
           "answerFaqs": [],
           "latencyMs": {
-            "total": 2603,
-            "llm": 2559,
-            "search": 37
+            "total": 2925,
+            "llm": 2903,
+            "search": 16
           },
           "tokens": {
             "input": 1285,
@@ -2959,9 +2921,9 @@
           ],
           "answerFaqs": [],
           "latencyMs": {
-            "total": 11,
+            "total": 9,
             "llm": 0,
-            "search": 10
+            "search": 7
           },
           "tokens": null,
           "costUsd": 0,
@@ -2975,7 +2937,7 @@
               "Japan"
             ]
           },
-          "reply": "No filters changed, your message was just a question.",
+          "reply": "No filters changed, your question is answered below.",
           "unmatched": [],
           "relaxed": [
             "destinations"
@@ -3030,16 +2992,16 @@
             1
           ],
           "latencyMs": {
-            "total": 3109,
-            "llm": 3093,
-            "search": 9
+            "total": 2274,
+            "llm": 2252,
+            "search": 14
           },
           "tokens": {
             "input": 744,
-            "output": 295,
+            "output": 292,
             "cacheRead": 3420
           },
-          "costUsd": 0.00478,
+          "costUsd": 0.00475,
           "error": null
         }
       ]
@@ -3072,7 +3034,7 @@
           "message": "which currency do they use in Peru?",
           "interpreter": "llm",
           "state": {},
-          "reply": "No filters changed, your message was only a question.",
+          "reply": "No filters changed, this was only a question.",
           "unmatched": [],
           "relaxed": [],
           "confidence": {
@@ -3161,16 +3123,16 @@
             48
           ],
           "latencyMs": {
-            "total": 2924,
-            "llm": 2901,
-            "search": 15
+            "total": 2866,
+            "llm": 2842,
+            "search": 14
           },
           "tokens": {
             "input": 894,
-            "output": 332,
+            "output": 326,
             "cacheRead": 3420
           },
-          "costUsd": 0.00545,
+          "costUsd": 0.00539,
           "error": null
         }
       ]
@@ -3191,7 +3153,7 @@
         {
           "name": "top3",
           "pass": true,
-          "detail": "top3 9,14,11"
+          "detail": "top3 9,11,21"
         },
         {
           "name": "faq",
@@ -3242,12 +3204,6 @@
               "confidence": 0.627
             },
             {
-              "tripId": 14,
-              "title": "Strasbourg and Colmar Express: the magic of Christmas markets, fine wines, and relaxation",
-              "exact": false,
-              "confidence": 0.297
-            },
-            {
               "tripId": 11,
               "title": "Sweden: Northern Lights and Lapland",
               "exact": false,
@@ -3260,32 +3216,38 @@
               "confidence": 0.282
             },
             {
-              "tripId": 12,
-              "title": "Athens Weekend: Acropolis, Cape Sounion and taverna nights",
+              "tripId": 41,
+              "title": "Canadian Rockies: Northern Lights Winter Quest",
               "exact": false,
-              "confidence": 0.244
+              "confidence": 0.176
             },
             {
-              "tripId": 42,
-              "title": "Balkan Christmas Markets: Ljubljana, Lake Bled & Zagreb",
+              "tripId": 19,
+              "title": "Thailand 360° Winter: Bangkok, Phuket and Chiang Mai",
               "exact": false,
-              "confidence": 0.23
+              "confidence": 0.148
+            },
+            {
+              "tripId": 14,
+              "title": "Strasbourg and Colmar Express: the magic of Christmas markets, fine wines, and relaxation",
+              "exact": false,
+              "confidence": 0.131
             }
           ],
           "answerFaqs": [
             34
           ],
           "latencyMs": {
-            "total": 2314,
-            "llm": 2221,
-            "search": 69
+            "total": 2137,
+            "llm": 2087,
+            "search": 42
           },
           "tokens": {
             "input": 856,
-            "output": 326,
+            "output": 329,
             "cacheRead": 3420
           },
-          "costUsd": 0.005314,
+          "costUsd": 0.005344,
           "error": null
         }
       ]
@@ -3394,9 +3356,9 @@
           ],
           "answerFaqs": [],
           "latencyMs": {
-            "total": 39,
+            "total": 13,
             "llm": 0,
-            "search": 28
+            "search": 11
           },
           "tokens": null,
           "costUsd": 0,
@@ -3464,9 +3426,9 @@
           ],
           "answerFaqs": [],
           "latencyMs": {
-            "total": 2744,
-            "llm": 2684,
-            "search": 37
+            "total": 2283,
+            "llm": 2263,
+            "search": 15
           },
           "tokens": {
             "input": 1055,
@@ -3485,7 +3447,7 @@
               "Japan"
             ]
           },
-          "reply": "No filters changed, you only asked a question.",
+          "reply": "No filters changed, you just asked a question.",
           "unmatched": [],
           "relaxed": [
             "destinations"
@@ -3540,9 +3502,9 @@
             39
           ],
           "latencyMs": {
-            "total": 2710,
-            "llm": 2687,
-            "search": 15
+            "total": 2805,
+            "llm": 2783,
+            "search": 17
           },
           "tokens": {
             "input": 761,
@@ -3684,9 +3646,9 @@
           ],
           "answerFaqs": [],
           "latencyMs": {
-            "total": 1770,
-            "llm": 1750,
-            "search": 15
+            "total": 2672,
+            "llm": 2654,
+            "search": 13
           },
           "tokens": {
             "input": 52,
@@ -3791,9 +3753,9 @@
           ],
           "answerFaqs": [],
           "latencyMs": {
-            "total": 1758,
-            "llm": 1732,
-            "search": 18
+            "total": 1613,
+            "llm": 1577,
+            "search": 24
           },
           "tokens": {
             "input": 724,
@@ -3952,9 +3914,9 @@
           ],
           "answerFaqs": [],
           "latencyMs": {
-            "total": 15,
+            "total": 10,
             "llm": 0,
-            "search": 11
+            "search": 9
           },
           "tokens": null,
           "costUsd": 0,
@@ -3964,76 +3926,64 @@
           "message": "something warm between December and February",
           "interpreter": "llm",
           "state": {
-            "text": "warm weather, sunny destination",
+            "text": "warm weather",
             "continents": [
               "Asia"
             ],
             "departFrom": "2026-12-01",
             "departTo": "2027-02-28"
           },
-          "reply": "Done: warm trips departing between 1 December and 28 February, keeping Asia as the continent.",
+          "reply": "Done: warm trips departing 1 December to 28 February, keeping Asia.",
           "unmatched": [],
           "relaxed": [],
           "confidence": {
-            "score": 0.6189333333333334,
-            "level": "medium",
+            "score": 0.4920000000000001,
+            "level": "low",
             "explanation": "10 trips match everything you asked for. Parts of your request were ambiguous: check the filters we applied.",
             "understanding": 0.8,
-            "matchQuality": 0.7736666666666667
+            "matchQuality": 0.6150000000000001
           },
           "exactCount": 10,
           "results": [
             {
-              "tripId": 45,
-              "title": "Nepal 360°: Kathmandu, Sunrise over Annapurna & Rhinos in Chitwan",
-              "exact": true,
-              "confidence": 0.803
-            },
-            {
               "tripId": 19,
               "title": "Thailand 360° Winter: Bangkok, Phuket and Chiang Mai",
               "exact": true,
-              "confidence": 0.78
+              "confidence": 0.645
             },
             {
-              "tripId": 29,
-              "title": "Philippines 360°: Bohol's Tarsiers, Palawan & a Night Under the Stars",
+              "tripId": 45,
+              "title": "Nepal 360°: Kathmandu, Sunrise over Annapurna & Rhinos in Chitwan",
               "exact": true,
-              "confidence": 0.738
-            },
-            {
-              "tripId": 16,
-              "title": "Maldives Beach Life: Dolphins, Turtles & Sunset Sandbanks in Vaavu Atoll",
-              "exact": true,
-              "confidence": 0.737
+              "confidence": 0.6
             },
             {
               "tripId": 7,
               "title": "Vietnam 360°: from Hanoi to Ho Chi Minh City",
               "exact": true,
-              "confidence": 0.708
+              "confidence": 0.6
             },
             {
               "tripId": 15,
               "title": "Bali 360°: Seminyak, Ubud, Rice Terraces & a Balinese Cooking Class",
               "exact": true,
-              "confidence": 0.7
-            },
-            {
-              "tripId": 2,
-              "title": "Japan 360°: Tokyo, Kyoto, Hiroshima & Osaka by Bullet Train",
-              "exact": true,
-              "confidence": 0.651
+              "confidence": 0.6
             },
             {
               "tripId": 28,
               "title": "South Korea 360°: Between Modernity And Tradition",
               "exact": true,
-              "confidence": 0.648
+              "confidence": 0.6
             },
             {
-              "tripId": 40,
-              "title": "India and Rajasthan: Taj Mahal, the Pink City of Jaipur & Blue Jodhpur",
+              "tripId": 2,
+              "title": "Japan 360°: Tokyo, Kyoto, Hiroshima & Osaka by Bullet Train",
+              "exact": true,
+              "confidence": 0.6
+            },
+            {
+              "tripId": 16,
+              "title": "Maldives Beach Life: Dolphins, Turtles & Sunset Sandbanks in Vaavu Atoll",
               "exact": true,
               "confidence": 0.6
             },
@@ -4042,27 +3992,39 @@
               "title": "China 360°: Beijing, Shanghai, the Great Wall & Chengdu's Giant Pandas",
               "exact": true,
               "confidence": 0.6
+            },
+            {
+              "tripId": 40,
+              "title": "India and Rajasthan: Taj Mahal, the Pink City of Jaipur & Blue Jodhpur",
+              "exact": true,
+              "confidence": 0.6
+            },
+            {
+              "tripId": 29,
+              "title": "Philippines 360°: Bohol's Tarsiers, Palawan & a Night Under the Stars",
+              "exact": true,
+              "confidence": 0.6
             }
           ],
           "answerFaqs": [],
           "latencyMs": {
-            "total": 2057,
-            "llm": 1981,
-            "search": 66
+            "total": 1890,
+            "llm": 1836,
+            "search": 48
           },
           "tokens": {
             "input": 753,
-            "output": 278,
+            "output": 267,
             "cacheRead": 3420
           },
-          "costUsd": 0.004628,
+          "costUsd": 0.004518,
           "error": null
         },
         {
           "message": "only trips with a cooking class",
           "interpreter": "llm",
           "state": {
-            "text": "warm weather, sunny destination",
+            "text": "warm weather",
             "mustHave": [
               "cooking class"
             ],
@@ -4078,11 +4040,11 @@
             "mustHave"
           ],
           "confidence": {
-            "score": 0.74,
+            "score": 0.6225,
             "level": "medium",
             "explanation": "2 trips match everything you asked for.",
             "understanding": 1,
-            "matchQuality": 0.74
+            "matchQuality": 0.6225
           },
           "exactCount": 2,
           "results": [
@@ -4090,58 +4052,58 @@
               "tripId": 19,
               "title": "Thailand 360° Winter: Bangkok, Phuket and Chiang Mai",
               "exact": true,
-              "confidence": 0.78
+              "confidence": 0.645
             },
             {
               "tripId": 15,
               "title": "Bali 360°: Seminyak, Ubud, Rice Terraces & a Balinese Cooking Class",
               "exact": true,
-              "confidence": 0.7
+              "confidence": 0.6
             },
             {
               "tripId": 45,
               "title": "Nepal 360°: Kathmandu, Sunrise over Annapurna & Rhinos in Chitwan",
               "exact": false,
-              "confidence": 0.401
-            },
-            {
-              "tripId": 29,
-              "title": "Philippines 360°: Bohol's Tarsiers, Palawan & a Night Under the Stars",
-              "exact": false,
-              "confidence": 0.369
-            },
-            {
-              "tripId": 16,
-              "title": "Maldives Beach Life: Dolphins, Turtles & Sunset Sandbanks in Vaavu Atoll",
-              "exact": false,
-              "confidence": 0.369
+              "confidence": 0.3
             },
             {
               "tripId": 7,
               "title": "Vietnam 360°: from Hanoi to Ho Chi Minh City",
               "exact": false,
-              "confidence": 0.354
+              "confidence": 0.3
+            },
+            {
+              "tripId": 28,
+              "title": "South Korea 360°: Between Modernity And Tradition",
+              "exact": false,
+              "confidence": 0.3
+            },
+            {
+              "tripId": 2,
+              "title": "Japan 360°: Tokyo, Kyoto, Hiroshima & Osaka by Bullet Train",
+              "exact": false,
+              "confidence": 0.3
             }
           ],
           "answerFaqs": [],
           "latencyMs": {
-            "total": 2514,
-            "llm": 2438,
-            "search": 68
+            "total": 2494,
+            "llm": 2430,
+            "search": 57
           },
           "tokens": {
-            "input": 1106,
-            "output": 286,
+            "input": 1095,
+            "output": 280,
             "cacheRead": 3420
           },
-          "costUsd": 0.005414,
+          "costUsd": 0.005332,
           "error": null
         },
         {
           "message": "max 1800 euros",
           "interpreter": "llm",
           "state": {
-            "text": "warm weather, sunny destination",
+            "text": "warm weather",
             "mustHave": [
               "cooking class"
             ],
@@ -4152,17 +4114,17 @@
             "departTo": "2027-02-28",
             "budgetMax": 1800
           },
-          "reply": "Done: added a maximum budget of €1800 per person, keeping all your other filters.",
+          "reply": "Done: added a maximum budget of €1800 per person, keeping everything else.",
           "unmatched": [],
           "relaxed": [
             "mustHave"
           ],
           "confidence": {
-            "score": 0.74,
+            "score": 0.6225,
             "level": "medium",
             "explanation": "2 trips match everything you asked for.",
             "understanding": 1,
-            "matchQuality": 0.74
+            "matchQuality": 0.6225
           },
           "exactCount": 2,
           "results": [
@@ -4170,31 +4132,31 @@
               "tripId": 19,
               "title": "Thailand 360° Winter: Bangkok, Phuket and Chiang Mai",
               "exact": true,
-              "confidence": 0.78
+              "confidence": 0.645
             },
             {
               "tripId": 15,
               "title": "Bali 360°: Seminyak, Ubud, Rice Terraces & a Balinese Cooking Class",
               "exact": true,
-              "confidence": 0.7
+              "confidence": 0.6
             },
             {
               "tripId": 45,
               "title": "Nepal 360°: Kathmandu, Sunrise over Annapurna & Rhinos in Chitwan",
               "exact": false,
-              "confidence": 0.401
-            },
-            {
-              "tripId": 16,
-              "title": "Maldives Beach Life: Dolphins, Turtles & Sunset Sandbanks in Vaavu Atoll",
-              "exact": false,
-              "confidence": 0.369
+              "confidence": 0.3
             },
             {
               "tripId": 7,
               "title": "Vietnam 360°: from Hanoi to Ho Chi Minh City",
               "exact": false,
-              "confidence": 0.354
+              "confidence": 0.3
+            },
+            {
+              "tripId": 16,
+              "title": "Maldives Beach Life: Dolphins, Turtles & Sunset Sandbanks in Vaavu Atoll",
+              "exact": false,
+              "confidence": 0.3
             },
             {
               "tripId": 40,
@@ -4205,16 +4167,16 @@
           ],
           "answerFaqs": [],
           "latencyMs": {
-            "total": 2714,
-            "llm": 2638,
-            "search": 66
+            "total": 2960,
+            "llm": 2905,
+            "search": 50
           },
           "tokens": {
-            "input": 425,
-            "output": 279,
+            "input": 414,
+            "output": 271,
             "cacheRead": 3420
           },
-          "costUsd": 0.003982,
+          "costUsd": 0.00388,
           "error": null
         }
       ]
@@ -4349,9 +4311,9 @@
           ],
           "answerFaqs": [],
           "latencyMs": {
-            "total": 18,
+            "total": 11,
             "llm": 0,
-            "search": 16
+            "search": 9
           },
           "tokens": null,
           "costUsd": 0,
@@ -4368,7 +4330,7 @@
             ],
             "minSeats": 3
           },
-          "reply": "Done: easy to moderate difficulty, for 3 people travelling together.",
+          "reply": "Done: easy to moderate difficulty, for 3 travellers, keeping the hiking theme.",
           "unmatched": [],
           "relaxed": [],
           "confidence": {
@@ -4449,16 +4411,16 @@
           ],
           "answerFaqs": [],
           "latencyMs": {
-            "total": 2445,
-            "llm": 2416,
-            "search": 23
+            "total": 2521,
+            "llm": 2493,
+            "search": 22
           },
           "tokens": {
             "input": 941,
-            "output": 258,
+            "output": 266,
             "cacheRead": 3420
           },
-          "costUsd": 0.004804,
+          "costUsd": 0.004884,
           "error": null
         },
         {
@@ -4542,16 +4504,363 @@
           ],
           "answerFaqs": [],
           "latencyMs": {
-            "total": 2505,
-            "llm": 2480,
-            "search": 16
+            "total": 2150,
+            "llm": 2122,
+            "search": 20
           },
           "tokens": {
-            "input": 1241,
+            "input": 1249,
             "output": 260,
             "cacheRead": 3420
           },
-          "costUsd": 0.005424,
+          "costUsd": 0.00544,
+          "error": null
+        }
+      ]
+    },
+    {
+      "id": "sort-keeps-closest",
+      "tags": [
+        "honesty",
+        "review"
+      ],
+      "pass": true,
+      "checks": [
+        {
+          "name": "top3",
+          "pass": true,
+          "detail": "top3 15,8,16"
+        },
+        {
+          "name": "zeroExact",
+          "pass": true,
+          "detail": "exact 0/6"
+        },
+        {
+          "name": "maxConfidence",
+          "pass": true,
+          "detail": "conf 0.50"
+        },
+        {
+          "name": "no-sold-out",
+          "pass": true,
+          "detail": "leaked "
+        },
+        {
+          "name": "no-dead-end",
+          "pass": true,
+          "detail": "0 empty turn(s)"
+        }
+      ],
+      "turns": [
+        {
+          "message": null,
+          "interpreter": "none",
+          "state": {
+            "destinations": [
+              "Japan"
+            ],
+            "budgetMax": 2000,
+            "sort": "price"
+          },
+          "reply": null,
+          "unmatched": [],
+          "relaxed": [
+            "destinations",
+            "budgetMax"
+          ],
+          "confidence": {
+            "score": 0.5,
+            "level": "medium",
+            "explanation": "No trip matches everything you asked for, so these are the closest options.",
+            "understanding": 1,
+            "matchQuality": 0.5
+          },
+          "exactCount": 0,
+          "results": [
+            {
+              "tripId": 15,
+              "title": "Bali 360°: Seminyak, Ubud, Rice Terraces & a Balinese Cooking Class",
+              "exact": false,
+              "confidence": 0.5
+            },
+            {
+              "tripId": 8,
+              "title": "Kyrgyzstan 360°: Bishkek, Yurt Nights & Eagle Hunters of Central Asia",
+              "exact": false,
+              "confidence": 0.5
+            },
+            {
+              "tripId": 16,
+              "title": "Maldives Beach Life: Dolphins, Turtles & Sunset Sandbanks in Vaavu Atoll",
+              "exact": false,
+              "confidence": 0.5
+            },
+            {
+              "tripId": 19,
+              "title": "Thailand 360° Winter: Bangkok, Phuket and Chiang Mai",
+              "exact": false,
+              "confidence": 0.5
+            },
+            {
+              "tripId": 7,
+              "title": "Vietnam 360°: from Hanoi to Ho Chi Minh City",
+              "exact": false,
+              "confidence": 0.5
+            },
+            {
+              "tripId": 2,
+              "title": "Japan 360°: Tokyo, Kyoto, Hiroshima & Osaka by Bullet Train",
+              "exact": false,
+              "confidence": 0.528
+            }
+          ],
+          "answerFaqs": [],
+          "latencyMs": {
+            "total": 14,
+            "llm": 0,
+            "search": 11
+          },
+          "tokens": null,
+          "costUsd": 0,
+          "error": null
+        }
+      ]
+    },
+    {
+      "id": "must-snorkel-europe",
+      "tags": [
+        "honesty",
+        "must-have",
+        "review"
+      ],
+      "pass": true,
+      "checks": [
+        {
+          "name": "zeroExact",
+          "pass": true,
+          "detail": "exact 0/6"
+        },
+        {
+          "name": "maxConfidence",
+          "pass": true,
+          "detail": "conf 0.50"
+        },
+        {
+          "name": "no-sold-out",
+          "pass": true,
+          "detail": "leaked "
+        },
+        {
+          "name": "no-dead-end",
+          "pass": true,
+          "detail": "0 empty turn(s)"
+        }
+      ],
+      "turns": [
+        {
+          "message": null,
+          "interpreter": "none",
+          "state": {
+            "mustHave": [
+              "snorkeling"
+            ],
+            "continents": [
+              "Europe"
+            ]
+          },
+          "reply": null,
+          "unmatched": [],
+          "relaxed": [
+            "mustHave"
+          ],
+          "confidence": {
+            "score": 0.5,
+            "level": "medium",
+            "explanation": "No trip matches everything you asked for, so these are the closest options.",
+            "understanding": 1,
+            "matchQuality": 0.5
+          },
+          "exactCount": 0,
+          "results": [
+            {
+              "tripId": 12,
+              "title": "Athens Weekend: Acropolis, Cape Sounion and taverna nights",
+              "exact": false,
+              "confidence": 0.5
+            },
+            {
+              "tripId": 14,
+              "title": "Strasbourg and Colmar Express: the magic of Christmas markets, fine wines, and relaxation",
+              "exact": false,
+              "confidence": 0.5
+            },
+            {
+              "tripId": 21,
+              "title": "Copenhagen Weekend: Fairytale Charm, Tivoli Gardens & Danish Hygge",
+              "exact": false,
+              "confidence": 0.5
+            },
+            {
+              "tripId": 30,
+              "title": "Budapest Weekend: The Pearl of the East",
+              "exact": false,
+              "confidence": 0.5
+            },
+            {
+              "tripId": 46,
+              "title": "Warsaw Weekend: Old Town, Wilanów Palace and vodka tasting",
+              "exact": false,
+              "confidence": 0.5
+            },
+            {
+              "tripId": 48,
+              "title": "Dublin Weekend: a taste of true Dubliner life",
+              "exact": false,
+              "confidence": 0.5
+            }
+          ],
+          "answerFaqs": [],
+          "latencyMs": {
+            "total": 11,
+            "llm": 0,
+            "search": 9
+          },
+          "tokens": null,
+          "costUsd": 0,
+          "error": null
+        }
+      ]
+    },
+    {
+      "id": "all-unmatched-classic",
+      "tags": [
+        "honesty",
+        "review"
+      ],
+      "pass": true,
+      "checks": [
+        {
+          "name": "maxConfidence",
+          "pass": true,
+          "detail": "conf 0.30"
+        },
+        {
+          "name": "unmatched",
+          "pass": true,
+          "detail": "unmatched [\"Antarctica\"]"
+        },
+        {
+          "name": "no-sold-out",
+          "pass": true,
+          "detail": "leaked "
+        },
+        {
+          "name": "no-dead-end",
+          "pass": true,
+          "detail": "0 empty turn(s)"
+        }
+      ],
+      "turns": [
+        {
+          "message": null,
+          "interpreter": "none",
+          "state": {},
+          "reply": null,
+          "unmatched": [
+            "Antarctica"
+          ],
+          "relaxed": [],
+          "confidence": {
+            "score": 0.3,
+            "level": "low",
+            "explanation": "We can't search for: Antarctica. These are all the trips with open departures instead.",
+            "understanding": 0.8,
+            "matchQuality": 1
+          },
+          "exactCount": 50,
+          "results": [
+            {
+              "tripId": 6,
+              "title": "Egypt 360°: Pyramids of Giza, Night Train to Aswan & the Red Sea",
+              "exact": true,
+              "confidence": 1
+            },
+            {
+              "tripId": 7,
+              "title": "Vietnam 360°: from Hanoi to Ho Chi Minh City",
+              "exact": true,
+              "confidence": 1
+            },
+            {
+              "tripId": 8,
+              "title": "Kyrgyzstan 360°: Bishkek, Yurt Nights & Eagle Hunters of Central Asia",
+              "exact": true,
+              "confidence": 1
+            },
+            {
+              "tripId": 12,
+              "title": "Athens Weekend: Acropolis, Cape Sounion and taverna nights",
+              "exact": true,
+              "confidence": 1
+            },
+            {
+              "tripId": 14,
+              "title": "Strasbourg and Colmar Express: the magic of Christmas markets, fine wines, and relaxation",
+              "exact": true,
+              "confidence": 1
+            },
+            {
+              "tripId": 21,
+              "title": "Copenhagen Weekend: Fairytale Charm, Tivoli Gardens & Danish Hygge",
+              "exact": true,
+              "confidence": 1
+            },
+            {
+              "tripId": 30,
+              "title": "Budapest Weekend: The Pearl of the East",
+              "exact": true,
+              "confidence": 1
+            },
+            {
+              "tripId": 34,
+              "title": "Guatemala and Belize: Volcanoes, Ruins, and Caribbean Vibes",
+              "exact": true,
+              "confidence": 1
+            },
+            {
+              "tripId": 35,
+              "title": "Cape Verde Beach Life: Sal Island",
+              "exact": true,
+              "confidence": 1
+            },
+            {
+              "tripId": 39,
+              "title": "Ecuador 360°: the Amazon, the Andes & Snorkeling the Galapagos Islands",
+              "exact": true,
+              "confidence": 1
+            },
+            {
+              "tripId": 44,
+              "title": "Tanzania Backpack: a camping safari trip to the heart of the savannah",
+              "exact": true,
+              "confidence": 1
+            },
+            {
+              "tripId": 46,
+              "title": "Warsaw Weekend: Old Town, Wilanów Palace and vodka tasting",
+              "exact": true,
+              "confidence": 1
+            }
+          ],
+          "answerFaqs": [],
+          "latencyMs": {
+            "total": 11,
+            "llm": 0,
+            "search": 10
+          },
+          "tokens": null,
+          "costUsd": 0,
           "error": null
         }
       ]
@@ -4659,7 +4968,7 @@
           ],
           "answerFaqs": [],
           "latencyMs": {
-            "total": 10,
+            "total": 9,
             "llm": 0,
             "search": 8
           },
@@ -4676,7 +4985,7 @@
             ],
             "budgetMax": 2000
           },
-          "reply": "Done: budget raised to 2000 euros per person, still looking at Iceland.",
+          "reply": "Done: budget raised to 2000 € per person, still Iceland.",
           "unmatched": [],
           "relaxed": [
             "destinations"
@@ -4729,16 +5038,16 @@
           ],
           "answerFaqs": [],
           "latencyMs": {
-            "total": 2501,
-            "llm": 2487,
-            "search": 8
+            "total": 2405,
+            "llm": 2386,
+            "search": 13
           },
           "tokens": {
             "input": 1426,
-            "output": 252,
+            "output": 248,
             "cacheRead": 3420
           },
-          "costUsd": 0.005714,
+          "costUsd": 0.005674,
           "error": null
         }
       ]

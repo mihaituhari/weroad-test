@@ -2,6 +2,7 @@ import Anthropic from '@anthropic-ai/sdk';
 import { zodOutputFormat } from '@anthropic-ai/sdk/helpers/zod';
 import { z } from 'zod';
 import { config, PRICING } from '../config.ts';
+import { getSettings } from '../settings.ts';
 import { es, INDEX } from '../es.ts';
 import { SearchStateSchema } from './state.ts';
 import { parseRules } from './rules.ts';
@@ -48,9 +49,19 @@ const OutputSchema = z.object({
   certainty: z.enum(['high', 'medium', 'low']),
 });
 
-/** LLM state ("" / 0 = unset) → SearchState, validated like any other input. */
-const toState = (llm: z.infer<typeof LlmState>): SearchState =>
-  SearchStateSchema.parse(Object.fromEntries(Object.entries(llm).filter(([, v]) => v !== '' && v !== 0)));
+/**
+ * LLM state ("" / 0 = unset) → SearchState, validated like any other input. A field that fails validation
+ * (e.g. 2027-02-29) is dropped on its own instead of throwing away the whole paid interpretation.
+ */
+export function toState(llm: Record<string, unknown>): { state: SearchState; dropped: string[] } {
+  const raw: Record<string, unknown> = Object.fromEntries(Object.entries(llm).filter(([, v]) => v !== '' && v !== 0));
+  for (const k of ['durationMin', 'durationMax', 'minSeats'] as const) if (typeof raw[k] === 'number') raw[k] = Math.round(raw[k] as number);
+  const first = SearchStateSchema.safeParse(raw);
+  if (first.success) return { state: first.data as SearchState, dropped: [] };
+  const dropped = [...new Set(first.error.issues.map((i) => String(i.path[0])))];
+  for (const k of dropped) delete raw[k];
+  return { state: SearchStateSchema.parse(raw) as SearchState, dropped };
+}
 
 export interface Interpretation {
   state: SearchState;
@@ -82,19 +93,22 @@ const client = config.anthropicKey ? new Anthropic({ apiKey: config.anthropicKey
 
 export async function interpret(input: InterpretInput): Promise<Interpretation> {
   if (!client || input.forceRules) return rules(input, client ? null : 'no ANTHROPIC_API_KEY');
-  if ((await spentToday()) >= config.dailyLlmBudgetUsd) return rules(input, 'daily LLM budget reached');
-  const model = input.model ?? config.model;
+  // Model, budget and timeout come from /admin Settings (env vars are the defaults); evals can pin a model.
+  const { settings } = await getSettings();
+  const model = input.model ?? settings.llmModel;
+  if (model === 'none') return rules(input, 'LLM disabled in settings');
+  if ((await spentToday()) >= settings.dailyLlmBudgetUsd) return rules(input, 'daily LLM budget reached');
   const started = performance.now();
   try {
     const res = await client.messages.parse(
       {
         model,
-        max_tokens: 4000,
+        max_tokens: 2000, // replies are ~300 tokens incl. thinking at effort low
         output_config: { effort: 'low', format: zodOutputFormat(OutputSchema) },
         system: [{ type: 'text', text: systemPrompt(input.meta), cache_control: { type: 'ephemeral' } }],
         messages: [{ role: 'user', content: userPrompt(input) }],
       },
-      { timeout: config.llmTimeoutMs },
+      { timeout: settings.llmTimeoutMs },
     );
     const llmMs = Math.round(performance.now() - started);
     const u = res.usage;
@@ -103,39 +117,47 @@ export async function interpret(input: InterpretInput): Promise<Interpretation> 
     const costUsd = price
       ? (u.input_tokens * price.input + (u.cache_creation_input_tokens ?? 0) * price.input * 1.25 + tokens.cacheRead * price.cacheRead + u.output_tokens * price.output) / 1e6
       : 0;
+    spent.usd += costUsd;
     const out = res.parsed_output;
     if (res.stop_reason === 'refusal' || !out) return { ...rules(input, `llm ${res.stop_reason}`), llmMs, tokens, costUsd, model };
 
+    const { state, dropped } = toState(out.state);
     const byId = new Map(input.faqHits.map((h) => [h.faq.id, h.faq]));
     const cited = out.answer.text ? out.answer.faqIds.flatMap((id) => (byId.has(id) ? [byId.get(id)!] : [])) : [];
     return {
-      state: toState(out.state),
+      state,
       reply: out.reply,
       unmatched: out.unmatched,
       // An answer must cite at least one retrieved article, otherwise we don't show it (no ungrounded answers).
       answer: cited.length ? { text: out.answer.text, faqs: cited.map(({ id, title, url }) => ({ id, title, url })) } : null,
       interpreter: 'llm',
-      certainty: out.certainty,
+      certainty: dropped.length ? 'low' : out.certainty,
       model,
       llmMs,
       tokens,
       costUsd,
-      error: null,
+      error: dropped.length ? `llm output dropped: ${dropped.join(', ')}` : null,
     };
   } catch (err) {
     const error = err instanceof Anthropic.APIError ? `llm ${err.status ?? 'connection'}: ${err.message}` : `llm ${(err as Error).name}: ${(err as Error).message}`;
     console.warn(`[interpret] falling back to rules: ${error}`);
-    return { ...rules(input, error.slice(0, 300)), llmMs: Math.round(performance.now() - started), model };
+    // A timed-out request may still be billed: count a typical turn so the budget can't be dodged.
+    const price = PRICING[model];
+    const costUsd = err instanceof Anthropic.APIConnectionTimeoutError && price ? (3000 * price.input + 500 * price.output) / 1e6 : 0;
+    spent.usd += costUsd;
+    return { ...rules(input, error.slice(0, 300)), llmMs: Math.round(performance.now() - started), model, costUsd };
   }
 }
 
 // A public demo endpoint must not become an open LLM proxy: past the daily budget, the rules parser takes over.
-let spent = { day: '', usd: 0, checkedAt: 0 };
-async function spentToday() {
+// Spend is counted in process (logs can fail to be written); the search log only seeds it once per day.
+let spent = { day: '', usd: 0 };
+export async function spentToday() {
   const day = new Date().toISOString().slice(0, 10);
-  if (spent.day === day && Date.now() - spent.checkedAt < 60_000) return spent.usd;
-  const res = await es.search({ index: INDEX.searches, size: 0, query: { range: { at: { gte: day } } }, aggs: { usd: { sum: { field: 'costUsd' } } } });
-  spent = { day, usd: (res.aggregations?.usd as { value: number }).value, checkedAt: Date.now() };
+  if (spent.day !== day) {
+    const res = await es.search({ index: INDEX.searches, size: 0, query: { range: { at: { gte: day } } }, aggs: { usd: { sum: { field: 'costUsd' } } } });
+    spent = { day, usd: (res.aggregations?.usd as { value: number }).value };
+  }
   return spent.usd;
 }
 

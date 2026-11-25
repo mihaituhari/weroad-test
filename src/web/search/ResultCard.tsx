@@ -5,7 +5,8 @@ import { day, levelOf, money, pct, STATUS_LABEL, tileClass } from './format.ts';
 
 type Vote = FeedbackRequest['vote'];
 
-export function ResultCard({ result, searchId, position }: { result: TripResult; searchId: string; position: number }) {
+/** `scored` is false when the visitor hasn't asked for anything: a "% match" would be meaningless then. */
+export function ResultCard({ result, searchId, position, scored }: { result: TripResult; searchId: string; position: number; scored: boolean }) {
   const { trip, departures, fromPrice, exact, confidence, reasons, goodToKnow } = result;
   const [vote, setVote] = useState<Vote | null>(null);
   // Opening a trip is the signal we measure impact with (CTR, rescued zero-result searches).
@@ -23,8 +24,8 @@ export function ResultCard({ result, searchId, position }: { result: TripResult;
     <article className="card">
       <a className={`card__tile ${tileClass(trip.continent)}`} href={trip.url} target="_blank" rel="noreferrer" tabIndex={-1} onClick={track}>
         <span className="card__badges">
-          <span className={`badge badge--${levelOf(confidence)}`}>{pct(confidence)} match</span>
-          {!exact && <span className="badge">Closest option</span>}
+          {scored && <span className={`badge badge--${levelOf(confidence)}`}>{pct(confidence)} match</span>}
+          {scored && !exact && <span className="badge">Closest option</span>}
         </span>
         <span className="card__dest">{trip.destinationLabel}</span>
         <span className="card__overlay">
@@ -80,10 +81,12 @@ export function ResultCard({ result, searchId, position }: { result: TripResult;
         </p>
       )}
 
-      <div className="card__feedback">
-        <span>Good suggestion?</span>
-        <Votes vote={vote} onVote={onVote} />
-      </div>
+      {scored && (
+        <div className="card__feedback">
+          <span>Good suggestion?</span>
+          <Votes vote={vote} onVote={onVote} />
+        </div>
+      )}
     </article>
   );
 }

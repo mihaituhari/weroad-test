@@ -1,8 +1,8 @@
 import type { CatalogMeta, Mood, Physical, SearchState } from '../../shared/types.ts';
 
-// Rule-based fallback when the LLM is unavailable (no key, timeout, error). It only understands the
-// common patterns and never removes filters except on "start over" — so it is reported with lower
-// understanding in confidence.ts. Words it doesn't recognise go to `text` for semantic search.
+// Rule-based fallback when the LLM is unavailable (no key, timeout, error, daily budget). It only understands
+// common patterns and removes filters only on explicit phrases ("start over", "any budget", "any dates"),
+// so it is reported with lower understanding in confidence.ts. Unrecognised words go to `text`.
 
 const MONTH = '(jan(?:uary)?|feb(?:ruary)?|mar(?:ch)?|apr(?:il)?|may|june?|july?|aug(?:ust)?|sep(?:t(?:ember)?)?|oct(?:ober)?|nov(?:ember)?|dec(?:ember)?)';
 const MONTHS = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec'];
@@ -25,6 +25,9 @@ const STOPWORDS = new Set(
    switch okay sure yes fine thanks thank cheaper longer shorter let's lets i'd would could them those these one ones
    else other another different kind sort type place places country countries abroad dates date price`.split(/\s+/),
 );
+
+// Everyday words one typo away from a destination: "hungry" is not Hungary.
+const TYPO_COLLISIONS = new Set(['hungry', 'spin', 'pain', 'chin', 'chine', 'indie', 'italic', 'peri', 'perú']);
 
 const iso = (y: number, m: number, d: number) => new Date(Date.UTC(y, m, d)).toISOString().slice(0, 10);
 const monthIndex = (m: string) => MONTHS.indexOf(m.slice(0, 3).toLowerCase());
@@ -58,7 +61,9 @@ export function parseRules(message: string, current: SearchState, meta: CatalogM
   if (m) {
     const month = monthIndex(m[4]);
     const startMonth = m[2] ? monthIndex(m[2]) : month;
-    const y = yearOf(startMonth, today);
+    // "19-24 November" on 25 November means next November, not a window in the past.
+    let y = yearOf(startMonth, today);
+    if (iso(y, startMonth, +m[1]) <= today) y++;
     Object.assign(s, { departFrom: iso(y, startMonth, +m[1]), returnBy: iso(month < startMonth ? y + 1 : y, month, +m[3]), departTo: undefined });
   } else if ((m = take(new RegExp(`\\b(?:between|from)\\s+${MONTH}\\s+(?:and|to|-|–|until)\\s+${MONTH}\\b`)))) {
     const [a, b] = [monthIndex(m[1]), monthIndex(m[2])];
@@ -77,7 +82,11 @@ export function parseRules(message: string, current: SearchState, meta: CatalogM
   // Budget, duration, group size, age
   if (take(/\b(any|no) (budget|price)\b|\b(budget|price) (doesn'?t|does not) matter\b/)) delete s.budgetMax;
   if (take(/\b(any|flexible) (dates?|time)\b|\bdates? (don'?t|do not|doesn'?t) matter\b/)) for (const k of ['departFrom', 'departTo', 'returnBy'] as const) delete s[k];
-  if ((m = take(/\b(?:under|below|less than|max(?:imum)?|up to|no more than|stretch to|spend|afford|budget(?: of| is)?)\s*€?\s*(\d+(?:[.,]\d+)?)\s*(k)?\b/))) s.budgetMax = Math.round(parseFloat(m[1].replace(',', '.')) * (m[2] ? 1000 : 1));
+  if ((m = take(/\b(?:under|below|less than|max(?:imum)?|up to|no more than|stretch to|spend|afford|budget(?: of| is)?)\s*€?\s*(\d+(?:[.,]\d+)?)\s*(k)?\b/))) {
+    // "1,500" / "1.500" are thousands, "1.5k" is a decimal.
+    const n = /^\d{1,3}[.,]\d{3}$/.test(m[1]) && !m[2] ? +m[1].replace(/[.,]/g, '') : parseFloat(m[1].replace(',', '.'));
+    s.budgetMax = Math.round(n * (m[2] ? 1000 : 1));
+  }
   if (take(/\b(cheap|cheapest|lowest price|affordable)\b/)) s.sort = 'price';
   if (take(/\b(as soon as possible|asap|soonest|earliest)\b/)) s.sort = 'date';
   if (take(/\bweekend\b/)) Object.assign(s, { durationMin: undefined, durationMax: 4 });
@@ -115,8 +124,9 @@ export function parseRules(message: string, current: SearchState, meta: CatalogM
   if (/\b(south|central|latin|north)? ?americas?\b/.test(text) && !continents.includes('America')) continents.push('America');
   const destinations = found(meta.destinations.map((d) => d.name));
   const words = text.split(/[^a-z]+/).filter((w) => w.length >= 4);
-  for (const d of meta.destinations) if (!destinations.includes(d.name) && words.some((w) => oneTypo(w, d.name.toLowerCase()))) destinations.push(d.name);
-  if (/\b(usa|us|states|new york)\b/.test(text)) destinations.push('United States');
+  for (const d of meta.destinations)
+    if (!destinations.includes(d.name) && words.some((w) => !TYPO_COLLISIONS.has(w) && oneTypo(w, d.name.toLowerCase()))) destinations.push(d.name);
+  if (/\b(usa|u\.s\.a?\.?|the us|new york)(?=\W|$)/.test(text)) destinations.push('United States'); // not bare "us": "there are 3 of us"
   if (/\bbali\b/.test(text)) destinations.push('Indonesia');
   const types = found(meta.travelTypes);
   for (const n of [...continents, ...destinations, ...types, 'americas', 'america', 'usa', 'bali']) text = text.replace(new RegExp(`\\b${escape(n.toLowerCase())}\\b`, 'g'), ' ');

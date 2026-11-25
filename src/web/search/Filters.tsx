@@ -1,4 +1,4 @@
-import { useEffect, type FormEvent, type ReactNode } from 'react';
+import { useEffect, type ChangeEvent, type FormEvent, type ReactNode } from 'react';
 import { PHYSICAL, type CatalogMeta, type Physical, type SearchState } from '../../shared/types.ts';
 import { chips, money, patch, PHYSICAL_LABEL } from './format.ts';
 
@@ -7,27 +7,34 @@ type OnChange = (next: SearchState) => void;
 const str = (f: FormData, key: string) => String(f.get(key) ?? '').trim() || undefined;
 const num = (f: FormData, key: string) => (str(f, key) ? Number(str(f, key)) : undefined);
 
+/** Search-bar values typed but not searched yet; SearchPage merges them into every search. */
+export type BarEdits = Partial<Record<'text' | 'departFrom' | 'departTo', string>>;
+
 /** "Where / what?" + "When?" in one bordered box, like weroad.com. */
-export function SearchBar({ state, onSearch }: { state: SearchState; onSearch: OnChange }) {
+export function SearchBar(props: { state: SearchState; edits: BarEdits; onEdit: (edits: BarEdits) => void; onSearch: () => void }) {
+  const { state, edits, onEdit, onSearch } = props;
+  const field = (key: keyof BarEdits) => ({
+    name: key,
+    value: edits[key] ?? state[key] ?? '',
+    onChange: (e: ChangeEvent<HTMLInputElement>) => onEdit({ [key]: e.target.value }),
+  });
   function submit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    const f = new FormData(e.currentTarget);
-    onSearch(patch(state, { text: str(f, 'text'), departFrom: str(f, 'departFrom'), departTo: str(f, 'departTo') }));
+    onSearch();
   }
-  // Keyed on the values so the inputs follow changes made by the assistant or the chips.
   return (
-    <form className="searchbar" onSubmit={submit} key={[state.text, state.departFrom, state.departTo].join('|')}>
+    <form className="searchbar" onSubmit={submit}>
       <label className="searchbar__field searchbar__where">
         <span>Where / what?</span>
-        <input name="text" defaultValue={state.text} placeholder="Japan, northern lights, hiking…" />
+        <input {...field('text')} placeholder="Japan, northern lights, hiking…" />
       </label>
       <label className="searchbar__field">
         <span>When? From</span>
-        <input type="date" name="departFrom" defaultValue={state.departFrom} />
+        <input type="date" {...field('departFrom')} />
       </label>
       <label className="searchbar__field">
         <span>To</span>
-        <input type="date" name="departTo" defaultValue={state.departTo} />
+        <input type="date" {...field('departTo')} />
       </label>
       <button className="btn btn--primary">Search</button>
     </form>

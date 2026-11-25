@@ -78,6 +78,9 @@ export const textDecides = (s: SearchState, relevances: (number | null)[]) => !h
 export const resultConfidence = (match: number, relevance: number | null, decisive: boolean) =>
   match * (relevance === null ? 1 : 1 - (decisive ? 0.8 : 0.4) * (1 - relevance));
 
+/** A closest option is never "high": its badge must agree with "no exact match". */
+export const CLOSEST_MAX = 0.7;
+
 export const isExact = (meetsAll: boolean, relevance: number | null, decisive: boolean) =>
   meetsAll && (relevance === null || !decisive || relevance >= RELEVANT);
 

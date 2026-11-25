@@ -122,6 +122,19 @@ describe('matchTrip', () => {
     expect(m.checks.find((c) => c.field === 'departFrom')!.reason.text).toMatch(/not published yet/);
   });
 
+  it('picks the nearest departure even when every one is past the penalty cap', () => {
+    const farther = tour({ id: 'far', startingDate: '2027-03-01', endingDate: '2027-03-05' });
+    const nearer = tour({ id: 'near', startingDate: '2027-05-01', endingDate: '2027-05-05' });
+    const m = matchTrip(trip([farther, nearer]), { departFrom: '2027-12-01', departTo: '2027-12-31' }, ctx, TODAY)!;
+    expect(m.departures[0].id).toBe('near');
+  });
+
+  it('reports the constraint the visitor actually set', () => {
+    const m = matchTrip(trip([tour()]), { returnBy: '2026-12-12', durationMax: 3 }, ctx, TODAY)!;
+    expect(relaxationsOf([m]).map((r) => r.field).sort()).toEqual(['durationMax', 'returnBy']);
+    expect(relaxationsOf([m]).map((r) => r.note).join(' | ')).toMatch(/2 days longer or shorter/);
+  });
+
   it('explains what was relaxed', () => {
     const m = matchTrip(trip([tour({ priceEur: 1200 })]), { budgetMax: 1000, womenOnly: true }, ctx, TODAY)!;
     const notes = relaxationsOf([m]).map((r) => r.note).join(' | ');

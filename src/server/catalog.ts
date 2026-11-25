@@ -118,7 +118,8 @@ export async function deleteFaq(id: number) {
 // ---------- Bulk load (seed) ----------
 
 export async function bulkLoad(trips: Trip[], faqs: Faq[]) {
-  const [tripVectors, faqVectors] = await Promise.all([embed(trips.map(tripText)), embed(faqs.map(faqText))]);
+  const tripVectors = await embed(trips.map(tripText)); // sequential: one model run at a time keeps memory low
+  const faqVectors = await embed(faqs.map(faqText));
   const operations = [
     ...trips.flatMap((t, i) => [{ index: { _index: INDEX.trips, _id: String(t.id) } }, { ...TripSchema.parse(t), embedding: tripVectors[i] }]),
     ...faqs.flatMap((f, i) => [{ index: { _index: INDEX.faqs, _id: String(f.id) } }, { ...FaqSchema.parse(f), embedding: faqVectors[i] }]),

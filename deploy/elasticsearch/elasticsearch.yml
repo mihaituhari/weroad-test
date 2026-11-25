@@ -1,0 +1,10 @@
+# Single node, reachable only on Railway's private network (no public domain): security off, as locally.
+cluster.name: weroad
+node.name: elasticsearch
+discovery.type: single-node
+path.data: /esdata
+xpack.security.enabled: false
+# Railway can't raise vm.max_map_count, so no mmap for index files.
+node.store.allow_mmap: false
+# Railway private networking is IPv6; "::" listens on IPv6 and IPv4.
+network.host: "::"

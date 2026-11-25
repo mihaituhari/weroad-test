@@ -84,6 +84,10 @@ describe('review fixes', () => {
     expect(parse('hungry for street food in Asia').destinations).toBeUndefined();
   });
 
+  it('the currency word is part of the budget, not of a must-have', () => {
+    expect(parse('only trips with a cooking class under 1800 euros')).toMatchObject({ mustHave: ['cooking class'], budgetMax: 1800 });
+  });
+
   it('reads thousands separators', () => {
     expect(parse('budget under 1,500 euros').budgetMax).toBe(1500);
     expect(parse('max 1.5k').budgetMax).toBe(1500);

@@ -82,7 +82,7 @@ export function parseRules(message: string, current: SearchState, meta: CatalogM
   // Budget, duration, group size, age
   if (take(/\b(any|no) (budget|price)\b|\b(budget|price) (doesn'?t|does not) matter\b/)) delete s.budgetMax;
   if (take(/\b(any|flexible) (dates?|time)\b|\bdates? (don'?t|do not|doesn'?t) matter\b/)) for (const k of ['departFrom', 'departTo', 'returnBy'] as const) delete s[k];
-  if ((m = take(/\b(?:under|below|less than|max(?:imum)?|up to|no more than|stretch to|spend|afford|budget(?: of| is)?)\s*€?\s*(\d+(?:[.,]\d+)?)\s*(k)?\b/))) {
+  if ((m = take(/\b(?:under|below|less than|max(?:imum)?|up to|no more than|stretch to|spend|afford|budget(?: of| is)?)\s*€?\s*(\d+(?:[.,]\d+)?)\s*(k)?\b(?:\s*(?:euros?|eur|€))?/))) {
     // "1,500" / "1.500" are thousands, "1.5k" is a decimal.
     const n = /^\d{1,3}[.,]\d{3}$/.test(m[1]) && !m[2] ? +m[1].replace(/[.,]/g, '') : parseFloat(m[1].replace(',', '.'));
     s.budgetMax = Math.round(n * (m[2] ? 1000 : 1));

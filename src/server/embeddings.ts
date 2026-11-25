@@ -9,9 +9,18 @@ env.cacheDir = config.modelCacheDir;
 let extractor: Promise<FeatureExtractionPipeline> | null = null;
 const load = () => (extractor ??= pipeline('feature-extraction', config.embeddingModel, { dtype: 'q8' }));
 
+// Small batches keep memory flat: attention memory grows with batch size × text length², and 50 long trip
+// texts at once needed over 1 GB (the container limit on Railway).
+const BATCH = 8;
+
 export async function embed(texts: string[]): Promise<number[][]> {
-  const output = await (await load())(texts, { pooling: 'mean', normalize: true });
-  return output.tolist() as number[][];
+  const extract = await load();
+  const vectors: number[][] = [];
+  for (let i = 0; i < texts.length; i += BATCH) {
+    const output = await extract(texts.slice(i, i + BATCH), { pooling: 'mean', normalize: true });
+    vectors.push(...(output.tolist() as number[][]));
+  }
+  return vectors;
 }
 
 export const embedOne = async (text: string) => (await embed([text]))[0];

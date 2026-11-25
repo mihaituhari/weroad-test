@@ -31,8 +31,11 @@ app.all('/api/*', (c) => c.json({ error: 'not found' }, 404));
 app.use('/*', serveStatic({ root: './dist/web' }));
 app.get('/*', serveStatic({ path: './dist/web/index.html' }));
 
+console.log(`[boot] waiting for Elasticsearch at ${config.esUrl}`);
 await waitForEs();
-if (await seed()) console.log('Seeded trips and FAQs from samples/');
+console.log('[boot] Elasticsearch ready, checking the catalog');
+if (await seed()) console.log('[boot] seeded trips and FAQs from samples/');
+console.log('[boot] loading the embedding model');
 await embedOne('warm up'); // load the embedding model before the first visitor
 void provisionKibana();
 

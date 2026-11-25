@@ -191,6 +191,7 @@ export async function waitForEs(attempts = 60) {
       await es.cluster.health({ wait_for_status: 'yellow', timeout: '5s' });
       return;
     } catch (err) {
+      console.log(`[boot] Elasticsearch at ${config.esUrl} not ready (attempt ${i}/${attempts}): ${(err as Error).message}`);
       if (i === attempts) throw err;
       await new Promise((r) => setTimeout(r, 2000));
     }
